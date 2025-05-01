@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'register.dart';
+import 'package:project/view/dashboard/mainpage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -122,7 +123,14 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DashboardPage(),
+                        ),
+                      );
+                    },
                     child: const Text("Login", style: TextStyle(fontSize: 18)),
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project/view/autentikasi/login.dart';
 import 'package:project/view/autentikasi/register.dart';
+import 'package:project/view/dashboard/mainpage.dart';
 import 'package:project/view/splashscreen/splashscreen2.dart';
 import 'view/splashscreen/splashscreen.dart'; // ganti sesuai path kamu
 
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
         '/welcome': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
+        '/dashboard': (context) => const DashboardPage(),
       },
     );
   }

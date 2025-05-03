@@ -126,8 +126,10 @@ class _DashboardPageState extends State<DashboardPage> {
       title: Text(title),
       onTap: () {
         Navigator.pop(context);
-        debugPrint('Navigasi ke $title');
+        debugPrint('Navigasi ke kpa$title');
       },
     );
   }
 }
+
+

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'produk/produk_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -31,7 +32,7 @@ class _DashboardPageState extends State<DashboardPage> {
           color: Colors.orange.shade100,
           child: ListView(
             padding: EdgeInsets.zero,
-            children: [
+              children: [
               DrawerHeader(
                 decoration: BoxDecoration(color: Colors.orange.shade300),
                 child: const Center(
@@ -45,13 +46,20 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
               ),
-              _buildDrawerItem(Icons.dashboard, 'Dashboard'),
-              _buildDrawerItem(Icons.shopping_bag, 'Produk'),
-              _buildDrawerItem(Icons.category, 'Kategori'),
-              _buildDrawerItem(Icons.inbox, 'Pesanan Masuk'),
-              _buildDrawerItem(Icons.photo_library, 'Gallery'),
-              _buildDrawerItem(Icons.person, 'Profil'),
-              _buildDrawerItem(Icons.settings, 'Pengaturan'),
+              _buildDrawerItem(Icons.dashboard, 'Dashboard', () {
+                debugPrint('Navigasi ke Dashboard');
+              }),
+              _buildDrawerItem(Icons.shopping_bag, 'Produk', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProdukPage()),
+                );
+              }),
+              _buildDrawerItem(Icons.category, 'Kategori', () {}),
+              _buildDrawerItem(Icons.inbox, 'Pesanan Masuk', () {}),
+              _buildDrawerItem(Icons.photo_library, 'Gallery', () {}),
+              _buildDrawerItem(Icons.person, 'Profil', () {}),
+              _buildDrawerItem(Icons.settings, 'Pengaturan', () {}),
               ListTile(
                 leading: const Icon(Icons.logout),
                 title: const Text('Logout'),
@@ -120,13 +128,13 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildDrawerItem(IconData icon, String title) {
+  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
       onTap: () {
         Navigator.pop(context);
-        debugPrint('Navigasi ke kpa$title');
+        onTap();
       },
     );
   }

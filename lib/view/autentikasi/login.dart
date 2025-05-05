@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'register.dart';
 import 'package:project/view/dashboard/mainpage.dart';
+import 'package:project/view/home/homepage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -127,7 +128,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const DashboardPage(),
+                          builder: (context) => const HomePage(),
                         ),
                       );
                     },

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import 'edit_produk_page.dart';
 import 'tambah_produk_page.dart';
 
@@ -10,29 +13,47 @@ class ProdukPage extends StatefulWidget {
 }
 
 class _ProdukPageState extends State<ProdukPage> {
-  List<Map<String, dynamic>> produkList = [
-    {
-      'nama': 'Ayam Geprek',
-      'detail': '10000',
-      'stok': 2,
-      'kategori': 'Makanan',
-      'gambar': null,
-    },
-    {
-      'nama': 'Gurame',
-      'detail': '15000',
-      'stok': 5,
-      'kategori': 'Makanan',
-      'gambar': null,
-    },
-    {
-      'nama': 'Es Teh',
-      'detail': '5000',
-      'stok': 10,
-      'kategori': 'Minuman',
-      'gambar': null,
-    },
-  ];
+  List<Map<String, dynamic>> produkList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchProduk();
+  }
+
+  Future<void> fetchProduk() async {
+    const apiUrl = 'https://localhost:7138/api/Produk';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          produkList = List<Map<String, dynamic>>.from(data);
+        });
+      } else {
+        debugPrint('Gagal memuat data: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error saat fetch data: $e');
+    }
+  }
+
+  Future<void> deleteProduk(int id) async {
+    final apiUrl = 'https://localhost:7138/api/Produk/$id';
+
+    try {
+      final response = await http.delete(Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        debugPrint("Produk berhasil dihapus");
+      } else {
+        debugPrint("Gagal menghapus produk: ${response.statusCode}");
+      }
+    } catch (e) {
+      debugPrint("Error saat menghapus produk: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +75,11 @@ class _ProdukPageState extends State<ProdukPage> {
       body: ListView.builder(
         itemCount: produkList.length,
         itemBuilder: (context, index) {
-          final item = produkList[index];
+          final produk = produkList[index];
+          final idProduk = produk['idProduk'];
+
           return Dismissible(
-            key: Key(item['nama']),
+            key: Key(idProduk.toString()),
             direction: DismissDirection.endToStart,
             background: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -67,35 +90,44 @@ class _ProdukPageState extends State<ProdukPage> {
             confirmDismiss: (direction) async {
               return await showDialog<bool>(
                 context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Konfirmasi"),
-                  content: Text("Yakin ingin menghapus ${item['nama']}?"),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text("Batal"),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text("Konfirmasi"),
+                      content: Text(
+                        "Yakin ingin menghapus ${produk['namaProduk']}?",
                       ),
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text("Hapus"),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text("Batal"),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text("Hapus"),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
               );
             },
-            onDismissed: (direction) {
+            onDismissed: (direction) async {
+              final namaProduk = produk['namaProduk'];
+
               setState(() {
-                produkList.removeAt(index);
+                produkList.removeWhere((item) => item['idProduk'] == idProduk);
               });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("${item['nama']} dihapus")),
-              );
+
+              await deleteProduk(idProduk);
+
+              if (!mounted) return;
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text("$namaProduk dihapus")));
             },
-            child: _buildProdukCard(index, item),
+            child: _buildProdukCard(index, produk),
           );
         },
       ),
@@ -107,10 +139,9 @@ class _ProdukPageState extends State<ProdukPage> {
             MaterialPageRoute(builder: (context) => const TambahProdukPage()),
           );
 
+          if (!mounted) return;
           if (produkBaru != null) {
-            setState(() {
-              produkList.add(produkBaru);
-            });
+            await fetchProduk();
           }
         },
         child: const Icon(Icons.add),
@@ -127,12 +158,38 @@ class _ProdukPageState extends State<ProdukPage> {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.only(left: 16, right: 12),
-        leading: const CircleAvatar(
-          backgroundColor: Colors.orange,
-          child: Icon(Icons.shopping_bag, color: Colors.white),
+        leading: ClipOval(
+          child:
+              produk['gambar'] != null && produk['gambar'].toString().isNotEmpty
+                  ? Image.network(
+                    'https://localhost:7138/images/${produk['gambar']}',
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 48,
+                        height: 48,
+                        color: Colors.grey[200],
+                        child: const Icon(
+                          Icons.broken_image,
+                          color: Colors.red,
+                        ),
+                      );
+                    },
+                  )
+                  : Container(
+                    width: 48,
+                    height: 48,
+                    color: Colors.grey[200],
+                    child: const Icon(
+                      Icons.image_not_supported,
+                      color: Colors.grey,
+                    ),
+                  ),
         ),
         title: Text(
-          produk['nama'],
+          produk['namaProduk'],
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.deepOrange,
@@ -143,15 +200,12 @@ class _ProdukPageState extends State<ProdukPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Rp ${produk['detail']} | Stok: ${produk['stok']}",
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.black54,
-              ),
+              "Rp ${produk['harga']} | Stok: ${produk['stock']}",
+              style: const TextStyle(fontSize: 11, color: Colors.black54),
             ),
             const SizedBox(height: 2),
             Text(
-              produk['kategori'] ?? 'Lainnya',
+              produk['kategori']?['namaKategori'] ?? 'Lainnya',
               style: const TextStyle(
                 fontSize: 10,
                 color: Colors.grey,
@@ -170,10 +224,10 @@ class _ProdukPageState extends State<ProdukPage> {
               ),
             );
 
+            if (!mounted) return;
+
             if (updated != null) {
-              setState(() {
-                produkList[index] = updated;
-              });
+              await fetchProduk();
             }
           },
         ),

@@ -3,7 +3,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -363,7 +363,7 @@ final List<String> _menuItems = ['About', 'Contact', 'Settings', 'Sign Out'];
 enum Menu { itemOne, itemTwo, itemThree }
 
 class _ProfileIcon extends StatelessWidget {
-  const _ProfileIcon({Key? key}) : super(key: key);
+  const _ProfileIcon({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -394,10 +394,10 @@ class CategoryIconChip extends StatelessWidget {
   final String imagePath;
 
   const CategoryIconChip({
-    Key? key,
+    super.key,
     required this.label,
     required this.imagePath,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

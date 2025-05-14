@@ -1,6 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
 
 class TambahProdukPage extends StatefulWidget {
   const TambahProdukPage({super.key});
@@ -13,20 +19,69 @@ class _TambahProdukPageState extends State<TambahProdukPage> {
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _hargaController = TextEditingController();
   final TextEditingController _stokController = TextEditingController();
-  String? _selectedKategori;
-  final List<String> _kategoriList = ['Makanan', 'Minuman'];
-  File? _gambar;
+  final TextEditingController _keteranganController = TextEditingController();
 
-  Future<void> _pickGambar() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _gambar = File(picked.path);
-      });
+  String? _selectedKategori;
+  List<Map<String, dynamic>> _kategoriList = [];
+
+  File? _gambarFile;
+  Uint8List? _gambarBytesWeb;
+  String? _namaFileWeb;
+
+  final _apiBaseUrl = 'https://localhost:7138';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchKategori();
+  }
+
+  Future<void> fetchKategori() async {
+    final apiUrl = '$_apiBaseUrl/api/Kategori';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _kategoriList = List<Map<String, dynamic>>.from(data);
+          _selectedKategori =
+              _kategoriList.isNotEmpty
+                  ? _kategoriList.first['namaKategori']
+                  : null;
+        });
+      } else {
+        debugPrint('Gagal load kategori: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error load kategori: $e');
     }
   }
 
-  void _simpanProduk() {
+  Future<void> _pickGambar() async {
+    if (kIsWeb) {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        withData: true,
+      );
+
+      if (result != null && result.files.single.bytes != null) {
+        setState(() {
+          _gambarBytesWeb = result.files.single.bytes;
+          _namaFileWeb = result.files.single.name;
+        });
+      }
+    } else {
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (picked != null) {
+        setState(() {
+          _gambarFile = File(picked.path);
+        });
+      }
+    }
+  }
+
+  Future<void> _simpanProduk() async {
     if (_namaController.text.isEmpty || _hargaController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Nama dan harga wajib diisi")),
@@ -34,15 +89,59 @@ class _TambahProdukPageState extends State<TambahProdukPage> {
       return;
     }
 
-    final produkBaru = {
-      'nama': _namaController.text,
-      'detail': _hargaController.text,
-      'stok': int.tryParse(_stokController.text) ?? 0,
-      'kategori': _selectedKategori ?? _kategoriList.first,
-      'gambar': _gambar,
-    };
+    final kategoriId = await _getIdKategoriFromNama(_selectedKategori!);
+    final uri = Uri.parse('$_apiBaseUrl/api/Produk');
+    final request = http.MultipartRequest('POST', uri);
 
-    Navigator.pop(context, produkBaru);
+    request.fields['namaProduk'] = _namaController.text;
+    request.fields['harga'] = _hargaController.text;
+    request.fields['stock'] = _stokController.text;
+    request.fields['idKategori'] = kategoriId.toString();
+    request.fields['keterangan'] = _keteranganController.text;
+
+    try {
+      if (kIsWeb && _gambarBytesWeb != null && _namaFileWeb != null) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'gambar',
+            _gambarBytesWeb!,
+            filename: _namaFileWeb,
+          ),
+        );
+      } else if (!kIsWeb && _gambarFile != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('gambar', _gambarFile!.path),
+        );
+      }
+
+      final response = await request.send();
+      final resBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Produk berhasil ditambahkan")),
+        );
+        Navigator.pop(context, true);
+      } else {
+        debugPrint("Gagal: $resBody");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Gagal: ${response.statusCode}")),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Terjadi kesalahan saat upload")),
+      );
+    }
+  }
+
+  Future<int> _getIdKategoriFromNama(String nama) async {
+    final item = _kategoriList.firstWhere(
+      (k) => k['namaKategori'] == nama,
+      orElse: () => {'idKategori': 0},
+    );
+    return item['idKategori'] ?? 0;
   }
 
   @override
@@ -68,9 +167,12 @@ class _TambahProdukPageState extends State<TambahProdukPage> {
                   border: Border.all(color: Colors.orange.shade200),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: _gambar == null
-                    ? const Center(child: Text("Upload Gambar"))
-                    : Image.file(_gambar!, fit: BoxFit.cover),
+                child:
+                    _gambarFile != null
+                        ? Image.file(_gambarFile!, fit: BoxFit.cover)
+                        : _gambarBytesWeb != null
+                        ? Image.memory(_gambarBytesWeb!, fit: BoxFit.cover)
+                        : const Center(child: Text("Upload Gambar")),
               ),
             ),
             const SizedBox(height: 16),
@@ -94,26 +196,38 @@ class _TambahProdukPageState extends State<TambahProdukPage> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _selectedKategori ?? _kategoriList.first,
-              items: _kategoriList.map((kategori) {
-                return DropdownMenuItem(
-                  value: kategori,
-                  child: Text(kategori),
-                );
-              }).toList(),
-              decoration: InputDecoration(
-                labelText: 'Kategori',
-                filled: true,
-                fillColor: Colors.white,
-                prefixIcon: const Icon(Icons.category),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            _buildTextField(
+              controller: _keteranganController,
+              label: 'Keterangan',
+              icon: Icons.description,
+              keyboardType: TextInputType.multiline,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black),
               ),
-              onChanged: (value) {
-                setState(() {
-                  _selectedKategori = value;
-                });
-              },
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: DropdownButtonFormField<String>(
+                value: _selectedKategori,
+                items:
+                    _kategoriList.map((kategori) {
+                      return DropdownMenuItem<String>(
+                        value: kategori['namaKategori'],
+                        child: Text(kategori['namaKategori']),
+                      );
+                    }).toList(),
+                decoration: const InputDecoration(border: InputBorder.none),
+                isExpanded: true,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedKategori = value;
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -134,7 +248,7 @@ class _TambahProdukPageState extends State<TambahProdukPage> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

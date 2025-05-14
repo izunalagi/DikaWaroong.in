@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'produk/produk_page.dart';
+import 'gallery/gallery_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -57,9 +58,14 @@ class _DashboardPageState extends State<DashboardPage> {
               }),
               _buildDrawerItem(Icons.category, 'Kategori', () {}),
               _buildDrawerItem(Icons.inbox, 'Pesanan Masuk', () {}),
-              _buildDrawerItem(Icons.photo_library, 'Gallery', () {}),
-              _buildDrawerItem(Icons.person, 'Profil', () {}),
-              _buildDrawerItem(Icons.settings, 'Pengaturan', () {}),
+              _buildDrawerItem(Icons.photo_library, 'Gallery', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const GalleryPage()),
+                );
+              }),              
+              // _buildDrawerItem(Icons.person, 'Profil', () {}),
+              // _buildDrawerItem(Icons.settings, 'Pengaturan', () {}),
               ListTile(
                 leading: const Icon(Icons.logout),
                 title: const Text('Logout'),

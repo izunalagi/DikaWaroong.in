@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'produk/produk_page.dart';
 import 'gallery/gallery_page.dart';
+import 'pesanan/pesanan_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -57,7 +58,12 @@ class _DashboardPageState extends State<DashboardPage> {
                 );
               }),
               _buildDrawerItem(Icons.category, 'Kategori', () {}),
-              _buildDrawerItem(Icons.inbox, 'Pesanan Masuk', () {}),
+              _buildDrawerItem(Icons.inbox, 'Pesanan Masuk', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PesananPage()),
+                );
+              }),
               _buildDrawerItem(Icons.photo_library, 'Gallery', () {
                 Navigator.push(
                   context,

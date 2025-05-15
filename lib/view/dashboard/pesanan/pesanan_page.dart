@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'detail_transaksi_page.dart';
+import 'bukti_pembayaran_page.dart'; // pastikan file ini ada
 
 class PesananPage extends StatefulWidget {
   const PesananPage({super.key});
@@ -15,12 +16,14 @@ class _PesananPageState extends State<PesananPage> {
       'tanggal': '2025-05-15',
       'status': 'Belum Selesai',
       'selesai': false,
+      'bukti_uploaded': true, // ✅ contoh sudah upload bukti
     },
     {
       'id_transaksi': 2,
       'tanggal': '2025-05-14',
       'status': 'Belum Selesai',
       'selesai': false,
+      'bukti_uploaded': false, // ❌ contoh belum upload
     },
   ];
 
@@ -96,6 +99,32 @@ class _PesananPageState extends State<PesananPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      // Tombol Bukti
+                      IconButton(
+                        onPressed: transaksi['bukti_uploaded']
+                            ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => BuktiPembayaranPage(
+                                      idTransaksi: transaksi['id_transaksi'],
+                                    ),
+                                  ),
+                                );
+                              }
+                            : null,
+                        icon: Icon(
+                          Icons.receipt_long,
+                          color: transaksi['bukti_uploaded']
+                              ? Colors.green
+                              : Colors.grey,
+                          size: 28,
+                        ),
+                        tooltip: 'Bukti Pembayaran',
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Tombol Detail
                       ElevatedButton.icon(
                         onPressed: () {
                           Navigator.push(
@@ -118,6 +147,8 @@ class _PesananPageState extends State<PesananPage> {
                         ),
                       ),
                       const SizedBox(width: 10),
+
+                      // Tombol Selesaikan
                       ElevatedButton.icon(
                         onPressed: transaksi['selesai']
                             ? null

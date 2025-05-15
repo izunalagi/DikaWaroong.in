@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:project/view/splashscreen/splashscreen.dart';
 import 'package:provider/provider.dart';
 import 'package:project/view/autentikasi/login.dart';
 import 'package:project/view/autentikasi/register.dart';
@@ -15,11 +14,15 @@ import 'package:project/view/home/qris_payment_page.dart'; // ← tambahkan path
 void main() {
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => CartProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+      ],
       child: const MyApp(),
     ),
   );
 }
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -36,12 +39,10 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/dashboard': (context) => const DashboardPage(),
-        '/': (context) => const SplashScreen(),
+        '/': (context) => const HomePage(),
         '/cart': (context) => const CartPage(),
         '/profile': (context) => const ProfilePage(),
-        '/qris':
-            (context) =>
-                const QrisPaymentPage(), // ← tambahkan ini untuk akses halaman keranjang
+        '/qris': (context) => const QrisPaymentPage(), // ← tambahkan ini untuk akses halaman keranjang
       },
     );
   }

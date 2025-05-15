@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:project/view/dashboard/kategori/kategori_page.dart';
 import 'produk/produk_page.dart';
 import 'gallery/gallery_page.dart';
 import 'pesanan/pesanan_page.dart';
@@ -35,7 +34,7 @@ class _DashboardPageState extends State<DashboardPage> {
           color: Colors.orange.shade100,
           child: ListView(
             padding: EdgeInsets.zero,
-            children: [
+              children: [
               DrawerHeader(
                 decoration: BoxDecoration(color: Colors.orange.shade300),
                 child: const Center(
@@ -58,12 +57,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   MaterialPageRoute(builder: (context) => const ProdukPage()),
                 );
               }),
-              _buildDrawerItem(Icons.category, 'Kategori', () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const KategoriPage()),
-                );
-              }),
+              _buildDrawerItem(Icons.category, 'Kategori', () {}),
               _buildDrawerItem(Icons.inbox, 'Pesanan Masuk', () {
                 Navigator.push(
                   context,
@@ -75,7 +69,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   context,
                   MaterialPageRoute(builder: (context) => const GalleryPage()),
                 );
-              }),
+              }),              
               // _buildDrawerItem(Icons.person, 'Profil', () {}),
               // _buildDrawerItem(Icons.settings, 'Pengaturan', () {}),
               ListTile(
@@ -157,3 +151,5 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 }
+
+

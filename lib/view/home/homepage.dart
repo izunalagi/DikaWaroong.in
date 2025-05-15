@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-
+import 'package:project/view/home/ProductDetailsPage.dart';
+import 'package:project/view/home/menubycategoryPage.dart';
+import 'package:project/settings/setting_page.dart';
+import 'package:project/view/home/cartPage.dart';
+import 'package:project/models/product.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -13,31 +17,39 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
 
-  final List<Map<String, String>> restoranList = [
-    {
-      'name': 'Masakan Bunda - Sumbersari',
-      'rating': '4.7 (3rb+)',
-      'eta': 'Mulai dari 25 menit',
-      'promo': 'Diskon 40%',
-      'minOrder': 'Min. transaksi Rp75.000',
-      'image': 'assets/images/pecel.jpeg',
-    },
-    {
-      'name': 'Warung seva99 - Kepatihan',
-      'rating': '4.5 (1rb+)',
-      'eta': 'Mulai dari 35 menit',
-      'promo': 'Diskon 40%',
-      'minOrder': 'Min. transaksi Rp79.000',
-      'image': 'assets/images/minuman.jpeg',
-    },
-    {
-      'name': 'Lalapan Mbak Umi & Es Teler 67',
-      'rating': '4.8 (2rb+)',
-      'eta': 'Mulai dari 25 menit',
-      'promo': 'Diskon 40%',
-      'minOrder': 'Min. transaksi Rp79.000',
-      'image': 'assets/images/jamur.jpeg',
-    },
+  final List<Product> popularProducts = [
+    Product(
+      name: 'Seblak',
+      description: 'Seblak pedas nikmat khas Bandung.',
+      image: 'assets/images/seblak.jpeg',
+      price: 35000,
+      originalPrice: 45000,
+      quantity: 1,
+    ),
+    Product(
+      name: 'Ayam Kecap',
+      description: 'Ayam lezat dengan bumbu kecap manis.',
+      image: 'assets/images/ayamkecap.jpeg',
+      price: 40000,
+      originalPrice: 50000,
+      quantity: 1,
+    ),
+    Product(
+      name: 'Alpukat Coklat',
+      description: 'Minuman segar dari alpukat dan coklat.',
+      image: 'assets/images/alpukat.jpeg',
+      price: 20000,
+      originalPrice: 25000,
+      quantity: 1,
+    ),
+    Product(
+      name: 'Kentang Goreng',
+      description: 'Cemilan renyah dengan saus keju.',
+      image: 'assets/images/kentang.jpeg',
+      price: 18000,
+      originalPrice: 22000,
+      quantity: 1,
+    ),
   ];
 
   @override
@@ -47,17 +59,20 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: Colors.orange.shade50,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.orange.shade500,
+        backgroundColor: Colors.orange.shade700,
         elevation: 0,
         titleSpacing: 0,
-        leading: isLargeScreen
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
-                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-              ),
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsPage()),
+            );
+          },
+        ),
         title: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
@@ -65,8 +80,8 @@ class _HomePageState extends State<HomePage> {
             children: [
               const Text(
                 "DikaWaroong.in",
-                style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
               if (isLargeScreen) Expanded(child: _navBarItems())
             ],
@@ -75,7 +90,7 @@ class _HomePageState extends State<HomePage> {
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(child: _ProfileIcon()),
+            child: CircleAvatar(child: CartIcon()),
           )
         ],
       ),
@@ -88,6 +103,22 @@ class _HomePageState extends State<HomePage> {
           setState(() {
             _selectedIndex = index;
           });
+
+          // Navigasi berdasarkan index
+          switch (index) {
+            case 0:
+              Navigator.pushReplacementNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushReplacementNamed(context, '/bookmarks');
+              break;
+            case 2:
+              Navigator.pushReplacementNamed(context, '/cart');
+              break;
+            case 3:
+              Navigator.pushReplacementNamed(context, '/profile');
+              break;
+          }
         },
         destinations: const [
           NavigationDestination(
@@ -148,10 +179,10 @@ class _HomePageState extends State<HomePage> {
     return SafeArea(
       child: Column(
         children: [
-          // konten scrollable
           Expanded(
             child: CustomScrollView(
               slivers: [
+                // Carousel
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -208,46 +239,63 @@ class _HomePageState extends State<HomePage> {
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.all(16),
-                      itemCount: 4,
+                      itemCount: popularProducts.length,
                       itemBuilder: (context, index) {
-                        return Container(
-                          width: 160,
-                          margin: const EdgeInsets.only(right: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: const [
-                              BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2))
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(13),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Image.asset(
-                                  'assets/images/seblak.jpeg',
-                                  fit: BoxFit.contain,
+                        final product = popularProducts[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProductDetailsPage(
+                                  name: product.name,
+                                  image: product.image,
+                                  price: product.price,
+                                  
+                                  
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              const Text('Seblak',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                              const Text('Level 1, level 2'),
-                              const Text('Rp 35.000',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                            ],
+                            );
+                          },
+                          child: Container(
+                            width: 160,
+                            margin: const EdgeInsets.only(right: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(13),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Image.asset(product.image,
+                                      fit: BoxFit.contain),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(product.name,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
+                                const Text('Level 1, level 2'),
+                                Text('Rp ${product.price}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
+                              ],
+                            ),
                           ),
                         );
                       },
                     ),
                   ),
                 ),
+
                 // Kategori
                 SliverToBoxAdapter(
                   child: Padding(
@@ -255,22 +303,52 @@ class _HomePageState extends State<HomePage> {
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: const [
+                        children: [
                           CategoryIconChip(
-                              label: 'Makanan Berat',
-                              imagePath: 'assets/images/makanan.jpeg'),
+                            label: 'Makanan Berat',
+                            imagePath: 'assets/images/makanan.jpeg',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MenuByCategoryPage(
+                                      category: 'Makanan Berat'),
+                                ),
+                              );
+                            },
+                          ),
                           CategoryIconChip(
-                              label: 'Minuman',
-                              imagePath: 'assets/images/minuman.jpeg'),
+                            label: 'Minuman',
+                            imagePath: 'assets/images/minuman.jpeg',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      MenuByCategoryPage(category: 'Minuman'),
+                                ),
+                              );
+                            },
+                          ),
                           CategoryIconChip(
-                              label: 'Snacks',
-                              imagePath: 'assets/images/snacks.jpeg'),
+                            label: 'Snacks',
+                            imagePath: 'assets/images/snacks.jpeg',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      MenuByCategoryPage(category: 'Snacks'),
+                                ),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
                   ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
                 // Rekomendasi Pelanggan
                 SliverToBoxAdapter(
                   child: Padding(
@@ -292,56 +370,73 @@ class _HomePageState extends State<HomePage> {
                       final resto = restoranList[index];
                       return Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
-                              )
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(16),
-                                  bottomLeft: Radius.circular(16),
-                                ),
-                                child: Image.asset(
-                                  resto['image']!,
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProductDetailsPage(
+                                  name: resto['name'],
+                                  image: resto['image'],
+                                  price: resto['price'],
+                                  
+                                  
                                 ),
                               ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(resto['name']!,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16)),
-                                      Text('⭐ ${resto['rating']}'),
-                                      Text('🚚 ${resto['eta']}'),
-                                      const SizedBox(height: 4),
-                                      Text(resto['promo']!,
-                                          style: const TextStyle(
-                                              color: Colors.red)),
-                                      Text(resto['minOrder']!,
-                                          style: const TextStyle(fontSize: 12)),
-                                    ],
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
+                                )
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(16),
+                                    bottomLeft: Radius.circular(16),
+                                  ),
+                                  child: Image.asset(
+                                    resto['image'],
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
-                              ),
-                            ],
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(resto['name'],
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16)),
+                                        Text('⭐ ${resto['rating']}'),
+                                        Text('🚚 ${resto['eta']}'),
+                                        const SizedBox(height: 4),
+                                        Text(resto['promo'],
+                                            style: const TextStyle(
+                                                color: Colors.red)),
+                                        Text(resto['minOrder'],
+                                            style:
+                                                const TextStyle(fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -358,66 +453,97 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-final List<String> _menuItems = ['About', 'Contact', 'Settings', 'Sign Out'];
+final List<String> _menuItems = ['About us', 'Contact', 'Settings', 'Sign Out'];
 
-enum Menu { itemOne, itemTwo, itemThree }
-
-class _ProfileIcon extends StatelessWidget {
-  const _ProfileIcon({super.key});
+class CartIcon extends StatelessWidget {
+  const CartIcon({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<Menu>(
-        icon: const Icon(Icons.person),
-        offset: const Offset(0, 40),
-        onSelected: (Menu item) {},
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<Menu>>[
-              const PopupMenuItem<Menu>(
-                value: Menu.itemOne,
-                child: Text('Account'),
-              ),
-              const PopupMenuItem<Menu>(
-                value: Menu.itemTwo,
-                child: Text('Settings'),
-              ),
-              const PopupMenuItem<Menu>(
-                value: Menu.itemThree,
-                child: Text('Sign Out'),
-              ),
-            ]);
+    return IconButton(
+      icon: const Icon(Icons.shopping_cart),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CartPage()),
+        );
+      },
+    );
   }
 }
 
-// Kategori Chip
+enum Menu { itemOne, itemTwo, itemThree }
+
 class CategoryIconChip extends StatelessWidget {
   final String label;
   final String imagePath;
+  final VoidCallback onTap;
 
   const CategoryIconChip({
-    super.key,
+    Key? key,
     required this.label,
     required this.imagePath,
-  });
+    required this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      margin: const EdgeInsets.only(right: 8),
-      decoration: BoxDecoration(
-        color: Colors.orange.shade100,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        children: [
-          Image.asset(imagePath, width: 24, height: 24),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(color: Colors.orange.shade700),
-          ),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        margin: const EdgeInsets.only(right: 8),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade100,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          children: [
+            Image.asset(imagePath, width: 24, height: 24),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(color: Colors.orange.shade700),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+final List<Map<String, dynamic>> restoranList = [
+  {
+    'name': 'Masakan Bunda - Sumbersari',
+    'rating': '4.7 (3rb+)',
+    'eta': 'Mulai dari 25 menit',
+    'promo': 'Diskon 40%',
+    'minOrder': 'Min. transaksi Rp75.000',
+    'image': 'assets/images/pecel.jpeg',
+    'category': 'Makanan Berat',
+    'price': 42000,
+    'originalPrice': 50000,
+  },
+  {
+    'name': 'Warung seva99 - Kepatihan',
+    'rating': '4.5 (1rb+)',
+    'eta': 'Mulai dari 35 menit',
+    'promo': 'Diskon 40%',
+    'minOrder': 'Min. transaksi Rp79.000',
+    'image': 'assets/images/minuman.jpeg',
+    'category': 'Minuman',
+    'price': 18000,
+    'originalPrice': 22000,
+  },
+  {
+    'name': 'Lalapan Mbak Umi & Es Teler 67',
+    'rating': '4.8 (2rb+)',
+    'eta': 'Mulai dari 25 menit',
+    'promo': 'Diskon 40%',
+    'minOrder': 'Min. transaksi Rp79.000',
+    'image': 'assets/images/jamur.jpeg',
+    'category': 'Snacks',
+    'price': 15000,
+    'originalPrice': 19000,
+  },
+];

@@ -8,6 +8,7 @@ import 'package:project/view/autentikasi/login.dart';
 import 'package:project/view/autentikasi/register.dart';
 import 'package:project/view/dashboard/mainpage.dart';
 import 'package:project/view/home/homepage.dart';
+import 'package:project/view/home/activitypage.dart';
 import 'package:project/profile/profile_page.dart';
 import 'package:project/view/splashscreen/splashscreen2.dart';
 import 'package:project/view/home/ProductDetailsPage.dart';
@@ -33,21 +34,21 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'DikaWaroong.in',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        fontFamily: 'Roboto', // ← Tambahkan ini
+      ),
       initialRoute: '/',
       routes: {
         '/kn': (context) => const WelcomeScreen(),
         '/welcome': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/dashboard': (context) => const DashboardPage(),
         '/': (context) => const SplashScreen(),
         '/cart': (context) => const CartPage(),
         '/profile': (context) => const ProfilePage(),
-        '/dashboard/produk': (context) => const ProdukPage(),
-        '/dashboard/produk/tambah': (context) => const TambahProdukPage(),
-        '/qris':
-            (context) =>
-                const QrisPaymentPage(), // ← tambahkan ini untuk akses halaman keranjang
+        '/home': (context) => const HomePage(),
+        '/activity': (context) => const ActivityPage(),
+        '/qris': (context) => const QrisPaymentPage(),
       },
     );
   }

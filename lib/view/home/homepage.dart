@@ -5,7 +5,9 @@ import 'package:project/view/home/menubycategoryPage.dart';
 import 'package:project/settings/setting_page.dart';
 import 'package:project/view/home/cartPage.dart';
 import 'package:project/models/product.dart';
-
+import 'package:project/widgets/custom_nav_bar.dart';
+import 'package:project/widgets/category_card.dart';
+import 'package:project/widgets/custom_app_bar.dart';
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -29,7 +31,7 @@ class _HomePageState extends State<HomePage> {
     Product(
       name: 'Ayam Kecap',
       description: 'Ayam lezat dengan bumbu kecap manis.',
-      image: 'assets/images/ayamkecap.jpeg',
+      image: 'assets/images/ayamkecap.jpg',
       price: 40000,
       originalPrice: 50000,
       quantity: 1,
@@ -37,7 +39,7 @@ class _HomePageState extends State<HomePage> {
     Product(
       name: 'Alpukat Coklat',
       description: 'Minuman segar dari alpukat dan coklat.',
-      image: 'assets/images/alpukat.jpeg',
+      image: 'assets/images/alpukat.jpg',
       price: 20000,
       originalPrice: 25000,
       quantity: 1,
@@ -45,7 +47,7 @@ class _HomePageState extends State<HomePage> {
     Product(
       name: 'Kentang Goreng',
       description: 'Cemilan renyah dengan saus keju.',
-      image: 'assets/images/kentang.jpeg',
+      image: 'assets/images/kentang.jpg',
       price: 18000,
       originalPrice: 22000,
       quantity: 1,
@@ -60,89 +62,25 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.orange.shade700,
-        elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsPage()),
-            );
-          },
-        ),
-        title: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                "DikaWaroong.in",
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              if (isLargeScreen) Expanded(child: _navBarItems())
-            ],
-          ),
-        ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(child: CartIcon()),
-          )
-        ],
-      ),
+      appBar: const CustomAppBar(),
       drawer: isLargeScreen ? null : _drawer(),
       body: _buildBody(),
-      bottomNavigationBar: NavigationBar(
-        animationDuration: const Duration(milliseconds: 500),
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-
-          // Navigasi berdasarkan index
+      bottomNavigationBar: CustomNavBar(
+        selectedIndex: 0,
+        onTap: (index) {
+          if (index == 0) return;
           switch (index) {
-            case 0:
-              Navigator.pushReplacementNamed(context, '/home');
-              break;
             case 1:
-              Navigator.pushReplacementNamed(context, '/bookmarks');
+              Navigator.pushReplacementNamed(context, '/activity');
               break;
             case 2:
-              Navigator.pushReplacementNamed(context, '/cart');
-              break;
-            case 3:
               Navigator.pushReplacementNamed(context, '/profile');
               break;
           }
         },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_border_outlined),
-            selectedIcon: Icon(Icons.bookmark),
-            label: 'Bookmarks',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.shopping_bag_outlined),
-            selectedIcon: Icon(Icons.shopping_bag),
-            label: 'Cart',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline_rounded),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
       ),
+
+
     );
   }
 
@@ -299,25 +237,26 @@ class _HomePageState extends State<HomePage> {
                 // Kategori
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
                       child: Row(
                         children: [
-                          CategoryIconChip(
+                          CategoryCard(
                             label: 'Makanan Berat',
                             imagePath: 'assets/images/makanan.jpeg',
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => MenuByCategoryPage(
-                                      category: 'Makanan Berat'),
+                                  builder: (context) =>
+                                      MenuByCategoryPage(category: 'Makanan Berat'),
                                 ),
                               );
                             },
                           ),
-                          CategoryIconChip(
+                          CategoryCard(
                             label: 'Minuman',
                             imagePath: 'assets/images/minuman.jpeg',
                             onTap: () {
@@ -330,7 +269,7 @@ class _HomePageState extends State<HomePage> {
                               );
                             },
                           ),
-                          CategoryIconChip(
+                          CategoryCard(
                             label: 'Snacks',
                             imagePath: 'assets/images/snacks.jpeg',
                             onTap: () {
@@ -343,11 +282,15 @@ class _HomePageState extends State<HomePage> {
                               );
                             },
                           ),
+                          const SizedBox(width: 18),
                         ],
                       ),
                     ),
                   ),
                 ),
+
+
+
 
                 // Rekomendasi Pelanggan
                 SliverToBoxAdapter(
@@ -514,7 +457,7 @@ class CategoryIconChip extends StatelessWidget {
 
 final List<Map<String, dynamic>> restoranList = [
   {
-    'name': 'Masakan Bunda - Sumbersari',
+    'name': 'Pecal',
     'rating': '4.7 (3rb+)',
     'eta': 'Mulai dari 25 menit',
     'promo': 'Diskon 40%',

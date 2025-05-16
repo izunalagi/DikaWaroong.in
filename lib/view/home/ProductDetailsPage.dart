@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:project/providers/cart_provider.dart';
 import 'package:project/models/cartItem.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class ProductDetailsPage extends StatefulWidget {
   final String name;
@@ -19,8 +20,37 @@ class ProductDetailsPage extends StatefulWidget {
   State<ProductDetailsPage> createState() => _ProductDetailsPageState();
 }
 
-class _ProductDetailsPageState extends State<ProductDetailsPage> {
+class _ProductDetailsPageState extends State<ProductDetailsPage>
+    with SingleTickerProviderStateMixin {
   int quantity = 1;
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+
+  final currencyFormatter = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    );
+    _fadeController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,122 +59,184 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: BackButton(color: Colors.black87),
+        leading: const BackButton(color: Colors.black87),
         title: const Text(
           'Product Details',
-          style: TextStyle(color: Colors.black87),
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
+        backgroundColor: Colors.orange.shade600,
+        elevation: 1,
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Product Image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(widget.image, height: 200, fit: BoxFit.cover),
-              ),
-              const SizedBox(height: 16),
-
-              // Title
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  widget.name,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Product Image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    widget.image,
+                    height: 200,
+                    fit: BoxFit.cover,
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
-              // Price and quantity
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Rp $totalPrice',
-                    style: const TextStyle(
-                      color: Colors.green,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          if (quantity > 1) {
-                            setState(() {
-                              quantity--;
-                            });
-                          }
-                        },
-                        icon: const Icon(Icons.remove),
-                      ),
-                      Text(quantity.toString(),
-                          style: const TextStyle(fontSize: 16)),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            quantity++;
-                          });
-                        },
-                        icon: const Icon(Icons.add),
+                // Main Card
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 400),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Name
+                      Text(
+                        widget.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
 
-              // Product Description
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Product Details',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16),
+                      // Price and quantity
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            currencyFormatter.format(totalPrice),
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  if (quantity > 1) {
+                                    setState(() => quantity--);
+                                  }
+                                },
+                                icon: const Icon(Icons.remove_circle_outline),
+                              ),
+                              TweenAnimationBuilder(
+                                tween: Tween<double>(begin: 0, end: 1),
+                                duration: const Duration(milliseconds: 300),
+                                builder: (context, value, child) {
+                                  return Opacity(
+                                    opacity: value,
+                                    child: child,
+                                  );
+                                },
+                                child: Text(
+                                  '$quantity',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  setState(() => quantity++);
+                                },
+                                icon: const Icon(Icons.add_circle_outline),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Description
+                      const Text(
+                        'Product Details',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 500),
+                        opacity: 1,
+                        child: const Text(
+                          'Ini adalah deskripsi produk. Makanan ini sangat enak dan cocok untuk semua kalangan. Nikmati rasanya sekarang juga!',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Ini adalah deskripsi produk. Makanan ini sangat enak dan cocok untuk semua kalangan. Nikmati rasanya sekarang juga!',
-                style: TextStyle(color: Colors.black87),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
 
-      // Add to Cart Button only
+      // Add to Cart Button
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                final cartItem = CartItem(
-                  name: widget.name,
-                  image: widget.image,
-                  price: widget.price,
-                  quantity: quantity,
-                );
-
-                Provider.of<CartProvider>(context, listen: false).addToCart(cartItem);
-                Navigator.pushNamed(context, '/cart'); // atau tampilkan snackbar
-              },
-
-              icon: const Icon(Icons.shopping_cart_outlined),
-              label: const Text("Add to Cart"),
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepOrange,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 5,
             ),
+            icon: const Icon(Icons.shopping_cart_checkout),
+            label: const Text(
+              "Add to Cart",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            onPressed: () {
+              final cartItem = CartItem(
+                name: widget.name,
+                image: widget.image,
+                price: widget.price,
+                quantity: quantity,
+              );
+
+              Provider.of<CartProvider>(context, listen: false).addToCart(cartItem);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Produk berhasil ditambahkan ke keranjang!'),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: Colors.green,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),

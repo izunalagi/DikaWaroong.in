@@ -8,12 +8,14 @@ class ProductDetailsPage extends StatefulWidget {
   final String name;
   final String image;
   final int price;
+  final String description;
 
   const ProductDetailsPage({
     super.key,
     required this.name,
     required this.image,
     required this.price,
+    required this.description,
   });
 
   @override
@@ -76,18 +78,22 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // Product Image
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
+                  child: Image.network(
                     widget.image,
                     height: 200,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.broken_image,
+                        size: 100,
+                        color: Colors.grey,
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Main Card
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 400),
                   padding: const EdgeInsets.all(16),
@@ -105,7 +111,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Name
                       Text(
                         widget.name,
                         style: const TextStyle(
@@ -115,8 +120,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Price and quantity
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -138,21 +141,11 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                                 },
                                 icon: const Icon(Icons.remove_circle_outline),
                               ),
-                              TweenAnimationBuilder(
-                                tween: Tween<double>(begin: 0, end: 1),
-                                duration: const Duration(milliseconds: 300),
-                                builder: (context, value, child) {
-                                  return Opacity(
-                                    opacity: value,
-                                    child: child,
-                                  );
-                                },
-                                child: Text(
-                                  '$quantity',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              Text(
+                                '$quantity',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                               IconButton(
@@ -166,25 +159,19 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                         ],
                       ),
                       const SizedBox(height: 20),
-
-                      // Description
                       const Text(
-                        'Product Details',
+                        'Deskripsi Produk',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      AnimatedOpacity(
-                        duration: const Duration(milliseconds: 500),
-                        opacity: 1,
-                        child: const Text(
-                          'Ini adalah deskripsi produk. Makanan ini sangat enak dan cocok untuk semua kalangan. Nikmati rasanya sekarang juga!',
-                          style: TextStyle(
-                            color: Colors.black87,
-                            height: 1.5,
-                          ),
+                      Text(
+                        widget.description,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          height: 1.5,
                         ),
                       ),
                     ],
@@ -195,8 +182,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
           ),
         ),
       ),
-
-      // Add to Cart Button
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -223,11 +208,16 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                 quantity: quantity,
               );
 
-              Provider.of<CartProvider>(context, listen: false).addToCart(cartItem);
+              Provider.of<CartProvider>(
+                context,
+                listen: false,
+              ).addToCart(cartItem);
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: const Text('Produk berhasil ditambahkan ke keranjang!'),
+                  content: const Text(
+                    'Produk berhasil ditambahkan ke keranjang!',
+                  ),
                   duration: const Duration(seconds: 2),
                   backgroundColor: Colors.green,
                   behavior: SnackBarBehavior.floating,

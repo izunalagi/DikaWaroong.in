@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -10,41 +9,27 @@ class QrisPaymentPage extends StatefulWidget {
   State<QrisPaymentPage> createState() => _QrisPaymentPageState();
 }
 
-class _QrisPaymentPageState extends State<QrisPaymentPage> with SingleTickerProviderStateMixin {
+class _QrisPaymentPageState extends State<QrisPaymentPage>
+    with TickerProviderStateMixin {
   File? uploadedImage;
-  late final AnimationController _animationController;
-  late final Animation<double> _fadeAnimation;
-  late final Animation<double> _scaleAnimation;
+  late AnimationController _animationController;
+  late Animation<double> _fadeIn;
+  late Animation<double> _scaleUp;
 
   @override
   void initState() {
     super.initState();
-
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 500),
     );
-
-    _fadeAnimation = CurvedAnimation(parent: _animationController, curve: Curves.easeIn);
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1).animate(
+    _fadeIn = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeIn,
+    );
+    _scaleUp = Tween<double>(begin: 0.9, end: 1).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
     );
-  }
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-
-    if (picked != null) {
-      setState(() {
-        uploadedImage = File(picked.path);
-      });
-      _animationController.forward(from: 0);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Bukti transfer berhasil diunggah!")),
-      );
-    }
   }
 
   @override
@@ -53,168 +38,175 @@ class _QrisPaymentPageState extends State<QrisPaymentPage> with SingleTickerProv
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final picker = ImagePicker();
+      final result = await picker.pickImage(source: ImageSource.gallery);
+      if (result != null && mounted) {
+        setState(() {
+          uploadedImage = File(result.path);
+        });
+        _animationController.forward(from: 0);
+        _showSnack("Bukti transfer berhasil diunggah!");
+      }
+    } catch (e) {
+      _showSnack("Gagal mengunggah gambar: $e");
+    }
+  }
+
+  void _showSnack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Widget _buildImageUploadArea() {
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Container(
+        height: 180,
+        width: double.infinity,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.deepOrange.shade50.withOpacity(0.4),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.deepOrange.shade400, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.deepOrange.shade200.withOpacity(0.4),
+              blurRadius: 6,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child:
+            uploadedImage == null
+                ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.cloud_upload_outlined,
+                      size: 48,
+                      color: Colors.deepOrange.shade300,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      "Klik di sini untuk upload bukti transfer",
+                      style: TextStyle(
+                        color: Colors.deepOrange.shade300,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                )
+                : FadeTransition(
+                  opacity: _fadeIn,
+                  child: ScaleTransition(
+                    scale: _scaleUp,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        uploadedImage!,
+                        fit: BoxFit.contain,
+                        height: 170,
+                        width: double.infinity,
+                      ),
+                    ),
+                  ),
+                ),
+      ),
+    );
+  }
+
+  Widget _buildConfirmButton() {
+    return ElevatedButton.icon(
+      onPressed:
+          uploadedImage == null
+              ? null
+              : () => _showSnack("Pembayaran dikonfirmasi!"),
+      icon: const Icon(Icons.check_circle_outline),
+      label: const Text(
+        "Konfirmasi Pembayaran",
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.deepOrange,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        minimumSize: const Size.fromHeight(52),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: const BackButton(color: Colors.black87),
-        title: const Text('Pembayaran QRIS', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
         backgroundColor: Colors.orange.shade600,
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        leading: const BackButton(color: Colors.black),
+        title: const Text(
+          "Pembayaran QRIS",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        padding: const EdgeInsets.all(24),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // QRIS Image with shadow and rounded corners
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 8),
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: Image.asset(
-                    'assets/images/qris.jpg',
+                    "assets/images/qris.jpg",
                     width: 220,
                     height: 220,
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
-
-              const SizedBox(height: 36),
-
+              const SizedBox(height: 32),
               const Text(
-                'Lakukan pembayaran untuk pesanan anda',
+                "Lakukan pembayaran untuk pesanan anda",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 17,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
                 ),
               ),
-
-              const SizedBox(height: 48),
-
-              // Upload Area with Dotted Border and animation
-              GestureDetector(
-                onTap: _pickImage,
-                child: DottedBorder(
-                  color: Colors.deepOrange.shade300,
-                  strokeWidth: 2,
-                  dashPattern: const [8, 6],
-                  borderType: BorderType.RRect,
-                  radius: const Radius.circular(20),
-                  child: Container(
-                    width: double.infinity,
-                    height: 180,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.deepOrange.shade50.withOpacity(0.4),
-                    ),
-                    alignment: Alignment.center,
-                    child: uploadedImage == null
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.cloud_upload_outlined,
-                                size: 50,
-                                color: Colors.deepOrange.shade400,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Klik di sini untuk upload bukti transfer',
-                                style: TextStyle(
-                                  color: Colors.deepOrange.shade400,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          )
-                        : FadeTransition(
-                            opacity: _fadeAnimation,
-                            child: ScaleTransition(
-                              scale: _scaleAnimation,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Image.file(
-                                  uploadedImage!,
-                                  height: 170,
-                                  width: double.infinity,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-
+              const SizedBox(height: 36),
+              _buildImageUploadArea(),
               const SizedBox(height: 24),
-
-              // Success message animated fade in
               if (uploadedImage != null)
                 FadeTransition(
-                  opacity: _fadeAnimation,
+                  opacity: _fadeIn,
                   child: Text(
                     "Bukti transfer berhasil diunggah",
                     style: TextStyle(
-                      color: Colors.green.shade700,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       fontSize: 16,
-                      shadows: [
-                        Shadow(
-                          color: Colors.green.shade200,
-                          blurRadius: 6,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
+                      color: Colors.green.shade700,
                     ),
                   ),
                 ),
-
-              const SizedBox(height: 48),
-
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: const Text(
-                    'Konfirmasi Pembayaran',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepOrange,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 6,
-                  ),
-                  onPressed: uploadedImage != null ? () {
-                    // TODO: Implement confirmation logic
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Pembayaran dikonfirmasi!")),
-                    );
-                  } : null,
-                ),
-              ),
+              const SizedBox(height: 40),
+              _buildConfirmButton(),
             ],
           ),
         ),

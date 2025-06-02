@@ -34,9 +34,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'DikaWaroong.in',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Roboto', // ← Tambahkan ini
-      ),
+      theme: ThemeData(fontFamily: 'Roboto'),
       initialRoute: '/',
       routes: {
         '/kn': (context) => const WelcomeScreen(),

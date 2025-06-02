@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'register.dart';
+import 'package:project/view/dashboard/mainpage.dart';
 import 'package:project/view/home/homepage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -13,6 +18,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final _storage = FlutterSecureStorage();
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -43,6 +53,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _controller.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -51,6 +63,95 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       position: _slideAnimation,
       child: FadeTransition(opacity: _fadeAnimation, child: child),
     );
+  }
+
+  void _showAwesomeDialog({
+    required DialogType dialogType,
+    required String title,
+    required String desc,
+    VoidCallback? onOk,
+  }) {
+    AwesomeDialog(
+      context: context,
+      dialogType: dialogType,
+      animType: AnimType.bottomSlide,
+      title: title,
+      desc: desc,
+      btnOkOnPress: onOk ?? () {},
+      btnOkColor: Colors.orange.shade700,
+    ).show();
+  }
+
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showAwesomeDialog(
+        dialogType: DialogType.warning,
+        title: "Peringatan",
+        desc: "Email dan password tidak boleh kosong.",
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://localhost:7138/api/Auth/login"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"email": email, "password": password}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final token = data["token"];
+        final role = (data["akun"]["role"] ?? "").toString().toLowerCase();
+
+        await _storage.write(key: "jwt", value: token);
+
+        _showAwesomeDialog(
+          dialogType: DialogType.success,
+          title: "Login Berhasil",
+          desc: "Selamat datang, $email!",
+          onOk: () {
+            if (role == "admin") {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const DashboardPage()),
+              );
+            } else if (role == "pelanggan") {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const HomePage()),
+              );
+            } else {
+              _showAwesomeDialog(
+                dialogType: DialogType.error,
+                title: "Role Tidak Dikenali",
+                desc: "Role $role tidak dikenal.",
+              );
+            }
+          },
+        );
+      } else {
+        _showAwesomeDialog(
+          dialogType: DialogType.error,
+          title: "Login Gagal",
+          desc: data["message"] ?? "Email atau password salah.",
+        );
+      }
+    } catch (e) {
+      _showAwesomeDialog(
+        dialogType: DialogType.error,
+        title: "Error",
+        desc: "Terjadi kesalahan saat login.\n$e",
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -85,8 +186,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 const SizedBox(height: 30),
                 _buildAnimated(
                   TextField(
+                    controller: _emailController,
                     decoration: InputDecoration(
-                      labelText: "Masukkan Username",
+                      labelText: "Masukkan Email",
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
@@ -98,6 +200,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 const SizedBox(height: 16),
                 _buildAnimated(
                   TextField(
+                    controller: _passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: "Masukkan Password",
@@ -113,7 +216,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 _buildAnimated(
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepOrange,
+                      backgroundColor: Colors.orange.shade700,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,
@@ -123,15 +226,16 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomePage(),
-                        ),
-                      );
-                    },
-                    child: const Text("Login", style: TextStyle(fontSize: 18)),
+                    onPressed: _isLoading ? null : _login,
+                    child:
+                        _isLoading
+                            ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                            : const Text(
+                              "Login",
+                              style: TextStyle(fontSize: 18),
+                            ),
                   ),
                 ),
                 const SizedBox(height: 16),

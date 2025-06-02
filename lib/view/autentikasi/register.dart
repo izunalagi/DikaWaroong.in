@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'login.dart'; // Tambahkan import LoginPage
+import 'package:http/http.dart' as http;
+import 'package:awesome_dialog/awesome_dialog.dart'; // import ini
+import 'login.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -13,6 +16,12 @@ class _RegisterPageState extends State<RegisterPage>
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
+
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -39,6 +48,10 @@ class _RegisterPageState extends State<RegisterPage>
   @override
   void dispose() {
     _controller.dispose();
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -47,6 +60,83 @@ class _RegisterPageState extends State<RegisterPage>
       position: _slideAnimation,
       child: FadeTransition(opacity: _fadeAnimation, child: child),
     );
+  }
+
+  // Fungsi untuk menampilkan AwesomeDialog
+  void _showDialog({
+    required DialogType dialogType,
+    required String title,
+    required String desc,
+    VoidCallback? onOkPressed,
+  }) {
+    AwesomeDialog(
+      context: context,
+      dialogType: dialogType,
+      animType: AnimType.scale,
+      title: title,
+      desc: desc,
+      btnOkOnPress: onOkPressed ?? () {},
+      btnOkColor: Colors.orange.shade700,
+    ).show();
+  }
+
+  Future<void> _register() async {
+    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (username.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
+      _showDialog(
+        dialogType: DialogType.warning,
+        title: "Perhatian",
+        desc: "Semua field harus diisi",
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      _showDialog(
+        dialogType: DialogType.error,
+        title: "Error",
+        desc: "Password tidak cocok",
+      );
+      return;
+    }
+
+    final response = await http.post(
+      Uri.parse("https://localhost:7138/api/Auth/register"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "email": email,
+        "username": username,
+        "password": password,
+        "roleId": 2, // role pelanggan
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      _showDialog(
+        dialogType: DialogType.success,
+        title: "Berhasil",
+        desc: "Registrasi berhasil, silakan login",
+        onOkPressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginPage()),
+          );
+        },
+      );
+    } else {
+      _showDialog(
+        dialogType: DialogType.error,
+        title: "Gagal",
+        desc: "Registrasi gagal: ${response.body}",
+      );
+    }
   }
 
   @override
@@ -78,6 +168,7 @@ class _RegisterPageState extends State<RegisterPage>
                 const SizedBox(height: 30),
                 _buildAnimated(
                   TextField(
+                    controller: _usernameController,
                     decoration: InputDecoration(
                       labelText: "Masukkan Username",
                       filled: true,
@@ -91,6 +182,7 @@ class _RegisterPageState extends State<RegisterPage>
                 const SizedBox(height: 16),
                 _buildAnimated(
                   TextField(
+                    controller: _emailController,
                     decoration: InputDecoration(
                       labelText: "Masukkan Email",
                       filled: true,
@@ -104,6 +196,7 @@ class _RegisterPageState extends State<RegisterPage>
                 const SizedBox(height: 16),
                 _buildAnimated(
                   TextField(
+                    controller: _passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: "Masukkan Password",
@@ -118,6 +211,7 @@ class _RegisterPageState extends State<RegisterPage>
                 const SizedBox(height: 16),
                 _buildAnimated(
                   TextField(
+                    controller: _confirmPasswordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: "Konfirmasi Password",
@@ -133,7 +227,7 @@ class _RegisterPageState extends State<RegisterPage>
                 _buildAnimated(
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepOrange,
+                      backgroundColor: Colors.orange.shade700,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,
@@ -143,7 +237,7 @@ class _RegisterPageState extends State<RegisterPage>
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    onPressed: () {},
+                    onPressed: _register,
                     child: const Text("Daftar", style: TextStyle(fontSize: 18)),
                   ),
                 ),

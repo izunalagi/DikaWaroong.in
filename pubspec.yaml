@@ -28,18 +28,25 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  
+  flutter_map: ^8.1.1
+  latlong2: ^0.9.1
+  google_maps: ^8.1.1
+  google_maps_flutter: ^2.6.0
+  geolocator: ^14.0.1
   flutter:
     sdk: flutter
-  http: ^0.13.6
+  http: ^1.4.0
   carousel_slider: ^5.0.0
   flutter_svg: ^2.0.7
   provider: ^6.1.1
   image_picker: ^1.0.7
-  dotted_border: ^2.0.0
+  dotted_border: ^3.0.1
   url_launcher: ^6.2.6
-  intl: ^0.18.1
-  # file_picker: ^6.1.1
+  intl: ^0.20.2
+  shared_preferences: ^2.0.15
+  awesome_dialog: ^3.1.0
+  flutter_secure_storage: ^9.0.0
+  file_picker: ^10.1.9
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -93,11 +100,11 @@ flutter:
     - assets/images/qris.jpg
     - assets/images/alpukat.jpg
     - assets/images/ayamkecap.jpg
-    
+
     - assets/images/ayamgeprek.jpg
-    
+
     - assets/images/ayamcabeijo.jpg
-    
+
     - assets/images/maps.png
 
   #   - images/a_dot_burr.jpeg

@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:project/providers/cart_provider.dart';
-import 'package:intl/intl.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -10,14 +13,18 @@ class CartPage extends StatefulWidget {
   State<CartPage> createState() => _CartPageState();
 }
 
-class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin {
-  final currencyFormatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+class _CartPageState extends State<CartPage>
+    with SingleTickerProviderStateMixin {
+  final NumberFormat currencyFormatter = NumberFormat('#,###', 'id_ID');
   late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(duration: const Duration(milliseconds: 600), vsync: this);
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
     _controller.forward();
   }
 
@@ -25,6 +32,126 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkoutNow(CartProvider cart) async {
+    final storage = const FlutterSecureStorage();
+    final token = await storage.read(key: 'jwt');
+    if (token == null) {
+      print('❌ Token tidak ditemukan!');
+      return;
+    }
+
+    print('📦 JWT: $token');
+
+    try {
+      // Ambil data user dari API /me
+      final meResponse = await http.get(
+        Uri.parse('https://localhost:7138/api/Auth/me'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('📦 /me Status: ${meResponse.statusCode}');
+      print('📦 /me Body: ${meResponse.body}');
+
+      if (meResponse.statusCode != 200) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Gagal mengambil akun')));
+        return;
+      }
+
+      final meData = jsonDecode(meResponse.body);
+      print('📦 meData: $meData');
+
+      final int akunId = meData['id_Akun']; // sesuai dengan data JSON
+
+      print('✅ akunId: $akunId');
+
+      final transaksiPayload = {
+        "akunIdAkun": akunId,
+        "statusPesanan": false,
+        "tanggal": DateTime.now().toIso8601String(),
+      };
+      print('📦 Request Transaksi: ${jsonEncode(transaksiPayload)}');
+
+      // Kirim request create transaksi
+      final response = await http.post(
+        Uri.parse('https://localhost:7138/api/Transaksi'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(transaksiPayload),
+      );
+
+      print('📦 Response Transaksi: ${response.statusCode}');
+      print('📦 Response Body: ${response.body}');
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal membuat transaksi')),
+        );
+        return;
+      }
+
+      final transaksiData = jsonDecode(response.body);
+      print('📦 transaksiData: $transaksiData');
+
+      final int? transaksiId = transaksiData['id_transaksi'];
+
+      if (transaksiId == null) {
+        print('❌ transaksiId null!');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal mendapatkan ID Transaksi')),
+        );
+        return;
+      }
+
+      print('✅ transaksiId: $transaksiId');
+
+      // Kirim detail transaksi satu per satu
+      for (var item in cart.items) {
+        print(
+          '➡️ Kirim detail: idProduk=${item.idProduk}, quantity=${item.quantity}',
+        );
+        final detailRes = await http.post(
+          Uri.parse('https://localhost:7138/api/DetailTransaksi'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'transaksiIdTransaksi': transaksiId,
+            'produkIdProduk': item.idProduk,
+            'quantity': item.quantity,
+          }),
+        );
+
+        print('📦 Response Detail: ${detailRes.statusCode}');
+        print('📦 Detail Body: ${detailRes.body}');
+
+        if (detailRes.statusCode != 200 && detailRes.statusCode != 201) {
+          print('❌ Gagal kirim detail. Status: ${detailRes.statusCode}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal mengirim detail transaksi')),
+          );
+        } else {
+          print('✅ Detail berhasil');
+        }
+      }
+
+      cart.clearCart();
+      Navigator.pushNamed(context, '/qris', arguments: transaksiId);
+    } catch (e) {
+      print('❌ ERROR SAAT CHECKOUT: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 
   @override
@@ -64,10 +191,19 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                     final animation = Tween<Offset>(
                       begin: const Offset(1, 0),
                       end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: _controller,
-                      curve: Interval((index / cart.items.length), 1.0, curve: Curves.easeOut),
-                    ));
+                    ).animate(
+                      CurvedAnimation(
+                        parent: _controller,
+                        curve: Interval(
+                          (index / cart.items.length),
+                          1.0,
+                          curve: Curves.easeOut,
+                        ),
+                      ),
+                    );
+
+                    final double price = item.price.toDouble();
+                    final int quantity = item.quantity;
 
                     return SlideTransition(
                       position: animation,
@@ -85,34 +221,52 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                           ],
                         ),
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           minVerticalPadding: 12,
                           leading: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
+                            child: Image.network(
                               item.image,
                               width: 60,
                               height: 60,
                               fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) => Container(
+                                    width: 60,
+                                    height: 60,
+                                    color: Colors.grey.shade200,
+                                    child: const Icon(
+                                      Icons.broken_image,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                             ),
                           ),
                           title: Text(
                             item.name,
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           subtitle: Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
-                              'Qty: ${item.quantity}',
-                              style: const TextStyle(fontSize: 14, color: Colors.black54),
+                              'Qty: $quantity',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
                             ),
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                currencyFormatter.format(item.price * item.quantity),
+                                'Rp${currencyFormatter.format(price * quantity)}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.green,
@@ -121,7 +275,10 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                               ),
                               const SizedBox(width: 12),
                               IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                ),
                                 tooltip: 'Hapus item',
                                 onPressed: () {
                                   cart.removeItem(item);
@@ -135,20 +292,24 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                   },
                 ),
               ),
-
               const Divider(thickness: 1),
-
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
                 child: Row(
                   children: [
                     const Text(
                       'Total:',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const Spacer(),
                     Text(
-                      currencyFormatter.format(cart.totalPrice.toInt()),
+                      'Rp${currencyFormatter.format(cart.totalPrice)}',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -158,9 +319,11 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                   ],
                 ),
               ),
-
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: SizedBox(
                   width: double.infinity,
                   height: 54,
@@ -176,10 +339,13 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                     icon: const Icon(Icons.payment),
                     label: const Text(
                       'Checkout Sekarang',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17,
+                      ),
                     ),
                     onPressed: () {
-                      Navigator.pushNamed(context, '/qris');
+                      _checkoutNow(cart);
                     },
                   ),
                 ),

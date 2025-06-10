@@ -1,69 +1,99 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 class QrisPaymentPage extends StatefulWidget {
-  const QrisPaymentPage({super.key});
+  final int idTransaksi;
+  const QrisPaymentPage({super.key, required this.idTransaksi});
 
   @override
   State<QrisPaymentPage> createState() => _QrisPaymentPageState();
 }
 
-class _QrisPaymentPageState extends State<QrisPaymentPage>
-    with TickerProviderStateMixin {
-  File? uploadedImage;
-  late AnimationController _animationController;
-  late Animation<double> _fadeIn;
-  late Animation<double> _scaleUp;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _fadeIn = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeIn,
-    );
-    _scaleUp = Tween<double>(begin: 0.9, end: 1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
+class _QrisPaymentPageState extends State<QrisPaymentPage> {
+  Uint8List? selectedImageBytes;
+  String? selectedImageName;
+  bool isUploaded = false;
+  bool isUploading = false;
+  final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
     try {
-      final picker = ImagePicker();
-      final result = await picker.pickImage(source: ImageSource.gallery);
-      if (result != null && mounted) {
+      final picked = await _picker.pickImage(source: ImageSource.gallery);
+      if (picked != null) {
+        final bytes = await picked.readAsBytes();
         setState(() {
-          uploadedImage = File(result.path);
+          selectedImageBytes = bytes;
+          selectedImageName = picked.name;
         });
-        _animationController.forward(from: 0);
-        _showSnack("Bukti transfer berhasil diunggah!");
       }
     } catch (e) {
-      _showSnack("Gagal mengunggah gambar: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal pilih gambar: $e')));
     }
   }
 
-  void _showSnack(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+  Future<void> _uploadImage() async {
+    if (selectedImageBytes == null || selectedImageName == null) return;
+
+    setState(() {
+      isUploading = true;
+    });
+
+    final uri = Uri.parse(
+      'https://localhost:7138/api/Transaksi/${widget.idTransaksi}',
+    );
+
+    var request = http.MultipartRequest('PUT', uri);
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'BuktiTF',
+        selectedImageBytes!,
+        filename: selectedImageName!,
+        contentType: MediaType(
+          'image',
+          'jpeg',
+        ), // Bisa disesuaikan jika PNG dll
+      ),
+    );
+
+    try {
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        setState(() {
+          isUploaded = true;
+          isUploading = false;
+          // jangan reset selectedImageBytes dan selectedImageName biar preview tetap muncul
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bukti transfer berhasil diunggah')),
+        );
+      } else {
+        setState(() {
+          isUploading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload gagal: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isUploading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saat upload: $e')));
+    }
   }
 
   Widget _buildImageUploadArea() {
     return GestureDetector(
-      onTap: _pickImage,
+      onTap: isUploaded ? null : _pickImage,
       child: Container(
         height: 180,
         width: double.infinity,
@@ -81,7 +111,7 @@ class _QrisPaymentPageState extends State<QrisPaymentPage>
           ],
         ),
         child:
-            uploadedImage == null
+            selectedImageBytes == null
                 ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -100,40 +130,57 @@ class _QrisPaymentPageState extends State<QrisPaymentPage>
                     ),
                   ],
                 )
-                : FadeTransition(
-                  opacity: _fadeIn,
-                  child: ScaleTransition(
-                    scale: _scaleUp,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        uploadedImage!,
-                        fit: BoxFit.contain,
-                        height: 170,
-                        width: double.infinity,
-                      ),
-                    ),
-                  ),
+                : Image.memory(
+                  selectedImageBytes!,
+                  fit: BoxFit.contain,
+                  height: 170,
+                  width: double.infinity,
                 ),
       ),
     );
   }
 
   Widget _buildConfirmButton() {
+    if (isUploaded) {
+      return ElevatedButton.icon(
+        onPressed: null,
+        icon: const Icon(Icons.check_circle, color: Colors.white),
+        label: const Text(
+          "Bukti TF sudah terkirim",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          minimumSize: const Size.fromHeight(52),
+        ),
+      );
+    }
+
     return ElevatedButton.icon(
       onPressed:
-          uploadedImage == null
-              ? null
-              : () => _showSnack("Pembayaran dikonfirmasi!"),
-      icon: const Icon(Icons.check_circle_outline),
-      label: const Text(
-        "Konfirmasi Pembayaran",
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          (selectedImageBytes != null && !isUploading) ? _uploadImage : null,
+      icon:
+          isUploading
+              ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
+              )
+              : const Icon(Icons.upload),
+      label: Text(
+        isUploading ? "Sedang mengunggah..." : "Konfirmasi Pembayaran",
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
-        elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         minimumSize: const Size.fromHeight(52),
       ),
@@ -192,19 +239,6 @@ class _QrisPaymentPageState extends State<QrisPaymentPage>
               ),
               const SizedBox(height: 36),
               _buildImageUploadArea(),
-              const SizedBox(height: 24),
-              if (uploadedImage != null)
-                FadeTransition(
-                  opacity: _fadeIn,
-                  child: Text(
-                    "Bukti transfer berhasil diunggah",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: Colors.green.shade700,
-                    ),
-                  ),
-                ),
               const SizedBox(height: 40),
               _buildConfirmButton(),
             ],

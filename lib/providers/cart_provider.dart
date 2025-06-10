@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project/models/cartItem.dart';
+import 'package:project/models/cartitem.dart';
 
 class CartProvider with ChangeNotifier {
   final List<CartItem> _items = [];
@@ -7,11 +7,22 @@ class CartProvider with ChangeNotifier {
   List<CartItem> get items => _items;
 
   void addToCart(CartItem item) {
-    final index = _items.indexWhere((e) => e.name == item.name);
+    final index = _items.indexWhere((e) => e.idProduk == item.idProduk);
     if (index != -1) {
-      _items[index].quantity += item.quantity;
+      // Pastikan quantity tidak null
+      _items[index].quantity =
+          (_items[index].quantity ?? 1) + (item.quantity ?? 1);
     } else {
-      _items.add(item);
+      // Jika quantity null, ubah jadi 1 sebelum ditambahkan
+      _items.add(
+        CartItem(
+          idProduk: item.idProduk,
+          name: item.name,
+          price: item.price ?? 0,
+          image: item.image,
+          quantity: item.quantity ?? 1,
+        ),
+      );
     }
     notifyListeners();
   }
@@ -21,8 +32,16 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  int get totalQuantity => _items.fold(0, (sum, item) => sum + item.quantity);
+  int get totalQuantity =>
+      _items.fold(0, (sum, item) => sum + (item.quantity ?? 0));
 
-  double get totalPrice =>
-      _items.fold(0, (sum, item) => sum + (item.price * item.quantity));
+  double get totalPrice => _items.fold(
+    0,
+    (sum, item) => sum + ((item.price ?? 0) * (item.quantity ?? 0)),
+  );
+
+  void clearCart() {
+    _items.clear();
+    notifyListeners();
+  }
 }

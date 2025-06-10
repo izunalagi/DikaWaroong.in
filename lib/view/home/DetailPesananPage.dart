@@ -2,16 +2,21 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class DetailTransaksiPage extends StatefulWidget {
+class DetailPesananPage extends StatefulWidget {
   final int idTransaksi;
+  final int nomorUrut;
 
-  const DetailTransaksiPage({super.key, required this.idTransaksi});
+  const DetailPesananPage({
+    super.key,
+    required this.idTransaksi,
+    required this.nomorUrut,
+  });
 
   @override
-  State<DetailTransaksiPage> createState() => _DetailTransaksiPageState();
+  State<DetailPesananPage> createState() => _DetailPesananPageState();
 }
 
-class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
+class _DetailPesananPageState extends State<DetailPesananPage> {
   List<Map<String, dynamic>> detailList = [];
   int totalHarga = 0;
   bool isLoading = true;
@@ -30,15 +35,9 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
         '$baseUrl/DetailTransaksi/by-transaksi/${widget.idTransaksi}';
     final totalUrl = '$baseUrl/DetailTransaksi/total/${widget.idTransaksi}';
 
-    print('[DEBUG] Memuat detail transaksi dari: $detailUrl');
-    print('[DEBUG] Memuat total harga dari: $totalUrl');
-
     try {
       final detailResponse = await http.get(Uri.parse(detailUrl));
       final totalResponse = await http.get(Uri.parse(totalUrl));
-
-      print('[DEBUG] Detail status: ${detailResponse.statusCode}');
-      print('[DEBUG] Total status: ${totalResponse.statusCode}');
 
       if (detailResponse.statusCode == 200 && totalResponse.statusCode == 200) {
         final detailData = jsonDecode(detailResponse.body) as List<dynamic>;
@@ -50,9 +49,6 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
           totalHarga = totalData['total_harga'];
           isLoading = false;
         });
-
-        print('[DEBUG] Berhasil memuat ${detailList.length} item detail.');
-        print('[DEBUG] Total harga: $totalHarga');
       } else {
         setState(() {
           errorMessage = 'Gagal memuat data detail transaksi.';
@@ -60,7 +56,6 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
         });
       }
     } catch (e) {
-      print('[ERROR] $e');
       setState(() {
         errorMessage = 'Terjadi kesalahan: $e';
         isLoading = false;
@@ -71,11 +66,15 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.orange.shade50,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Detail Transaksi #${widget.idTransaksi}'),
-        backgroundColor: Colors.orange.shade700,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Pesanan #${widget.nomorUrut}', // Judul statis berdasarkan urutan
+          style: const TextStyle(color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body:
           isLoading
@@ -88,20 +87,30 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
                 ),
               )
               : detailList.isEmpty
-              ? const Center(child: Text('Detail transaksi kosong.'))
+              ? const Center(child: Text('Detail pesanan kosong.'))
               : Column(
                 children: [
                   Expanded(
                     child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       itemCount: detailList.length,
                       itemBuilder: (context, index) {
                         final detail = detailList[index];
-                        return Card(
-                          elevation: 3,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          shape: RoundedRectangleBorder(
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
@@ -126,28 +135,39 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 20,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade100,
+                      color: Colors.orange.shade100.withOpacity(0.4),
                       borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16),
+                        top: Radius.circular(24),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.15),
+                          blurRadius: 10,
+                          offset: const Offset(0, -2),
+                        ),
+                      ],
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Total Harga:',
+                          'Total Harga',
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         Text(
                           'Rp$totalHarga',
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: Colors.orange,
                           ),
                         ),
                       ],

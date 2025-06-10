@@ -88,6 +88,7 @@ class _MenuByCategoryPageState extends State<MenuByCategoryPage> {
                           MaterialPageRoute(
                             builder:
                                 (_) => ProductDetailsPage(
+                                  idProduk: item['idProduk'], // ✅ fix added
                                   name: item['namaProduk'],
                                   image: imageUrl,
                                   price: harga,

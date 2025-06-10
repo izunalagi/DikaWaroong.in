@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:project/providers/cart_provider.dart';
-import 'package:project/models/cartItem.dart';
+import 'package:project/models/cartitem.dart'; // gunakan hanya satu versi
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 class ProductDetailsPage extends StatefulWidget {
+  final int idProduk;
   final String name;
   final String image;
   final int price;
@@ -12,6 +13,7 @@ class ProductDetailsPage extends StatefulWidget {
 
   const ProductDetailsPage({
     super.key,
+    required this.idProduk,
     required this.name,
     required this.image,
     required this.price,
@@ -202,6 +204,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
             ),
             onPressed: () {
               final cartItem = CartItem(
+                idProduk: widget.idProduk,
                 name: widget.name,
                 image: widget.image,
                 price: widget.price,

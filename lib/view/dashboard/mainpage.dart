@@ -124,7 +124,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   MaterialPageRoute(builder: (_) => const GalleryPage()),
                 );
               }),
-              _buildDrawerItem(Icons.photo_library, 'Contact', () {
+              _buildDrawerItem(Icons.contact_phone, 'Contact', () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:project/widgets/custom_nav_bar.dart';
 import 'package:project/widgets/custom_app_bar.dart';
 import 'package:project/view/home/DetailPesananPage.dart';
+import 'package:project/view/home/qris_payment_page.dart';
 
 class ActivityPage extends StatefulWidget {
   const ActivityPage({super.key});
@@ -290,7 +291,18 @@ class _ActivityPageState extends State<ActivityPage> {
                             const SizedBox(height: 12),
                             Row(
                               children: [
-                                ElevatedButton(
+                                ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.tealAccent.shade700,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                  ),
                                   onPressed: () {
                                     Navigator.push(
                                       context,
@@ -303,25 +315,37 @@ class _ActivityPageState extends State<ActivityPage> {
                                       ),
                                     );
                                   },
-                                  child: const Text('Lihat Detail'),
+                                  icon: const Icon(Icons.info_outline),
+                                  label: const Text('Lihat Detail'),
                                 ),
                                 const SizedBox(width: 12),
                                 ElevatedButton.icon(
-                                  onPressed: () {
-                                    // TODO: Aksi bukti transfer
-                                  },
-                                  icon: const Icon(Icons.receipt, size: 18),
-                                  label: const Text("Bukti Transfer"),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green.shade50,
-                                    foregroundColor: Colors.green,
-                                    elevation: 0,
+                                    backgroundColor: Colors.amber.shade700,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 12,
                                       vertical: 8,
                                     ),
-                                    textStyle: const TextStyle(fontSize: 13),
                                   ),
+                                  onPressed: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => QrisPaymentPage(
+                                              idTransaksi: item['id'],
+                                            ),
+                                      ),
+                                    );
+                                    _loadActivityData(); // refresh data setelah balik dari QRIS page
+                                  },
+
+                                  icon: const Icon(Icons.receipt),
+                                  label: const Text("Upload Bukti"),
                                 ),
                               ],
                             ),

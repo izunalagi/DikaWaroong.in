@@ -71,7 +71,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   void _navigateToLogin() async {
     _exitController.forward();
-    await Future.delayed(const Duration(milliseconds: 300)); // Timing untuk sinkronisasi
+    await Future.delayed(const Duration(milliseconds: 1)); // Timing untuk sinkronisasi
     
     if (mounted) {
       Navigator.of(context).pushReplacement(

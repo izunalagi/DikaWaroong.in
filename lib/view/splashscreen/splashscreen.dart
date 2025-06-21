@@ -241,12 +241,12 @@ class _SplashScreenState extends State<SplashScreen>
       _exitController.forward();
       
       // Navigate dengan custom fade transition
-      await Future.delayed(const Duration(milliseconds: 200)); // Sedikit delay untuk sinkronisasi
+      await Future.delayed(const Duration(milliseconds: 1)); // Sedikit delay untuk sinkronisasi
       
       Navigator.of(context).pushReplacement(
         FadePageRoute(
           child: const WelcomeScreen(), // Ganti dengan halaman tujuan Anda
-          duration: const Duration(milliseconds: 1000), // Slow fade transition
+          duration: const Duration(milliseconds: 50), // Slow fade transition
         ),
       );
     }

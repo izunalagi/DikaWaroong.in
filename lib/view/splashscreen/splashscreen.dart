@@ -340,7 +340,7 @@ class _SplashScreenState extends State<SplashScreen>
                                               ),
                                               child: Image.asset(
                                                 'assets/images/warung.png',
-                                                height: 200,
+                                                height: 180,
                                               ),
                                             ),
                                           ),

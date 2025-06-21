@@ -108,7 +108,9 @@ class _RegisterPageState extends State<RegisterPage>
     }
 
     final response = await http.post(
-      Uri.parse("http://192.168.1.63:5239/api/Auth/register"),
+      Uri.parse(
+        "https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Auth/register",
+      ),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "email": email,

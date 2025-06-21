@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:project/widgets/custom_nav_bar.dart';
+import 'package:project/widgets/custom_app_bar.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -618,19 +619,15 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const CustomAppBar(),
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.orange.shade600,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text('Profile', style: TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body:
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : SafeArea(
+      body: Column(
+        children: [
+          if (isLoading)
+            const Expanded(child: Center(child: CircularProgressIndicator()))
+          else
+            Expanded(
+              child: SafeArea(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -643,6 +640,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
+            ),
+        ],
+      ),
       bottomNavigationBar: CustomNavBar(
         selectedIndex: 2,
         onTap: (index) {

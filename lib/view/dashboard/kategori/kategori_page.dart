@@ -62,76 +62,78 @@ class _KategoriPageState extends State<KategoriPage> {
     return Scaffold(
       backgroundColor: Colors.orange.shade50,
       appBar: AppBar(
-        backgroundColor: Colors.orange.shade50,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          "Kategori",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.deepOrange,
-            fontSize: 20,
-          ),
-        ),
+        title: const Text('Daftar Kategori'),
+        backgroundColor: Colors.orange.shade700,
+        foregroundColor: Colors.white,
       ),
       body: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         itemCount: kategoriList.length,
         itemBuilder: (context, index) {
           final kategori = kategoriList[index];
           final idKategori = kategori['idKategori'];
 
-          return Dismissible(
-            key: Key(idKategori.toString()),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              alignment: Alignment.centerRight,
-              color: Colors.red,
-              child: const Icon(Icons.delete, color: Colors.white),
-            ),
-            confirmDismiss: (direction) async {
-              return await showDialog<bool>(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: const Text("Konfirmasi"),
-                      content: Text(
-                        "Yakin ingin menghapus kategori ${kategori['namaKategori']}?",
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text("Batal"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text("Hapus"),
-                        ),
-                      ],
-                    ),
+          return TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: 1),
+            duration: Duration(milliseconds: 400 + (index * 100)),
+            builder: (context, value, child) {
+              return Transform.translate(
+                offset: Offset(30 * (1 - value), 0),
+                child: Opacity(opacity: value, child: child),
               );
             },
-            onDismissed: (direction) async {
-              final namaKategori = kategori['namaKategori'];
-
-              setState(() {
-                kategoriList.removeWhere(
-                  (item) => item['idKategori'] == idKategori,
+            child: Dismissible(
+              key: Key(idKategori.toString()),
+              direction: DismissDirection.endToStart,
+              background: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                alignment: Alignment.centerRight,
+                color: Colors.red,
+                child: const Icon(Icons.delete, color: Colors.white),
+              ),
+              confirmDismiss: (direction) async {
+                return await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text("Konfirmasi"),
+                    content: Text(
+                      "Yakin ingin menghapus kategori ${kategori['namaKategori']}?",
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text("Batal"),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text("Hapus"),
+                      ),
+                    ],
+                  ),
                 );
-              });
+              },
+              onDismissed: (direction) async {
+                final namaKategori = kategori['namaKategori'];
 
-              await deleteKategori(idKategori);
+                setState(() {
+                  kategoriList.removeWhere(
+                    (item) => item['idKategori'] == idKategori,
+                  );
+                });
 
-              if (!mounted) return;
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text("$namaKategori dihapus")));
-            },
-            child: _buildKategoriCard(kategori),
+                await deleteKategori(idKategori);
+
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("$namaKategori dihapus")),
+                );
+              },
+              child: _buildKategoriCard(kategori),
+            ),
           );
         },
       ),
@@ -140,7 +142,9 @@ class _KategoriPageState extends State<KategoriPage> {
         onPressed: () async {
           final hasil = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CreateKategoriPage()),
+            MaterialPageRoute(
+              builder: (context) => const CreateKategoriPage(),
+            ),
           );
 
           if (!mounted) return;
@@ -155,17 +159,22 @@ class _KategoriPageState extends State<KategoriPage> {
 
   Widget _buildKategoriCard(Map<String, dynamic> kategori) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: Colors.orange.shade200),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 10,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.orange.shade100,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.category, color: Colors.deepOrange),
         ),
-        leading: const Icon(Icons.category, color: Colors.deepOrange),
         title: Text(
           kategori['namaKategori'],
           style: const TextStyle(

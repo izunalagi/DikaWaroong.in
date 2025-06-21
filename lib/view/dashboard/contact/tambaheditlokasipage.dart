@@ -91,7 +91,7 @@ class _TambahEditLokasiPageState extends State<TambahEditLokasiPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Lokasi Kontak"),
-        backgroundColor: Colors.orange.shade400,
+        backgroundColor: Colors.orange.shade700,
         foregroundColor: Colors.white,
       ),
       body: Form(

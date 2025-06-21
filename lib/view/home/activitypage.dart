@@ -174,14 +174,6 @@ class _ActivityPageState extends State<ActivityPage> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            alignment: Alignment.centerLeft,
-            child: const Text(
-              'Aktivitas Pesanan',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ),
           if (isLoading)
             const Expanded(child: Center(child: CircularProgressIndicator()))
           else if (errorMessage != null)

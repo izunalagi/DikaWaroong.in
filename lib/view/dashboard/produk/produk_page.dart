@@ -34,7 +34,6 @@ class _ProdukPageState extends State<ProdukPage> {
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
-
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
         setState(() {
@@ -69,74 +68,78 @@ class _ProdukPageState extends State<ProdukPage> {
     return Scaffold(
       backgroundColor: Colors.orange.shade50,
       appBar: AppBar(
-        backgroundColor: Colors.orange.shade50,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          "Produk",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.deepOrange,
-            fontSize: 20,
-          ),
+        title: const Text('Daftar Produk'),
+        backgroundColor: Colors.orange.shade700,
+        foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         itemCount: produkList.length,
         itemBuilder: (context, index) {
           final produk = produkList[index];
           final idProduk = produk['idProduk'];
 
-          return Dismissible(
-            key: Key(idProduk.toString()),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              alignment: Alignment.centerRight,
-              color: Colors.red,
-              child: const Icon(Icons.delete, color: Colors.white),
-            ),
-            confirmDismiss: (direction) async {
-              return await showDialog<bool>(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: const Text("Konfirmasi"),
-                      content: Text(
-                        "Yakin ingin menghapus ${produk['namaProduk']}?",
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text("Batal"),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text("Hapus"),
-                        ),
-                      ],
-                    ),
+          return TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: 1),
+            duration: Duration(milliseconds: 400 + (index * 100)),
+            builder: (context, value, child) {
+              return Transform.translate(
+                offset: Offset(30 * (1 - value), 0),
+                child: Opacity(opacity: value, child: child),
               );
             },
-            onDismissed: (direction) async {
-              final namaProduk = produk['namaProduk'];
+            child: Dismissible(
+              key: Key(idProduk.toString()),
+              direction: DismissDirection.endToStart,
+              background: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                alignment: Alignment.centerRight,
+                color: Colors.red,
+                child: const Icon(Icons.delete, color: Colors.white),
+              ),
+              confirmDismiss: (direction) async {
+                return await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text("Konfirmasi"),
+                    content: Text("Yakin ingin menghapus ${produk['namaProduk']}?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text("Batal"),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text("Hapus"),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              onDismissed: (direction) async {
+                final namaProduk = produk['namaProduk'];
 
-              setState(() {
-                produkList.removeWhere((item) => item['idProduk'] == idProduk);
-              });
+                setState(() {
+                  produkList.removeWhere((item) => item['idProduk'] == idProduk);
+                });
 
-              await deleteProduk(idProduk);
+                await deleteProduk(idProduk);
 
-              if (!mounted) return;
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text("$namaProduk dihapus")));
-            },
-            child: _buildProdukCard(index, produk),
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("$namaProduk dihapus")),
+                );
+              },
+              child: _buildProdukCard(produk),
+            ),
           );
         },
       ),
@@ -158,46 +161,42 @@ class _ProdukPageState extends State<ProdukPage> {
     );
   }
 
-  Widget _buildProdukCard(int index, Map<String, dynamic> produk) {
+  Widget _buildProdukCard(Map<String, dynamic> produk) {
     final formattedPrice = _currencyFormatter.format(produk['harga']);
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: Colors.orange.shade200),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.only(left: 16, right: 12),
-        leading: ClipOval(
-          child:
-              produk['gambar'] != null && produk['gambar'].toString().isNotEmpty
-                  ? Image.network(
-                    'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/images/${produk['gambar']}',
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 48,
-                        height: 48,
-                        color: Colors.grey[200],
-                        child: const Icon(
-                          Icons.broken_image,
-                          color: Colors.red,
-                        ),
-                      );
-                    },
-                  )
-                  : Container(
-                    width: 48,
-                    height: 48,
+        contentPadding: const EdgeInsets.all(12),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: produk['gambar'] != null &&
+                  produk['gambar'].toString().isNotEmpty
+              ? FadeInImage.assetNetwork(
+                  placeholder: 'assets/loading.gif',
+                  image:
+                      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/images/${produk['gambar']}',
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                  imageErrorBuilder: (context, error, stackTrace) => Container(
+                    width: 50,
+                    height: 50,
                     color: Colors.grey[200],
-                    child: const Icon(
-                      Icons.image_not_supported,
-                      color: Colors.grey,
-                    ),
+                    child: const Icon(Icons.broken_image, color: Colors.red),
                   ),
+                )
+              : Container(
+                  width: 50,
+                  height: 50,
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                ),
         ),
         title: Text(
           produk['namaProduk'],
@@ -214,7 +213,7 @@ class _ProdukPageState extends State<ProdukPage> {
               "$formattedPrice | Stok: ${produk['stock']}",
               style: const TextStyle(fontSize: 11, color: Colors.black54),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
               produk['kategori']?['namaKategori'] ?? 'Lainnya',
               style: const TextStyle(

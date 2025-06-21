@@ -254,6 +254,7 @@ class _GalleryPageState extends State<GalleryPage> {
       appBar: AppBar(
         title: const Text('Gallery'),
         backgroundColor: Colors.orange.shade700,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(8),

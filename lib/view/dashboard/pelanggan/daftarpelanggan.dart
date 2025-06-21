@@ -28,16 +28,11 @@ class _PelangganPageState extends State<PelangganPage> {
         isLoading = true;
       });
 
-      // Ambil token dari SharedPreferences atau storage lain
-      // final prefs = await SharedPreferences.getInstance();
-      // final token = prefs.getString('auth_token');
-
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: {
           'Content-Type': 'application/json',
-          // Jika menggunakan authorization, uncomment baris di bawah:
-          // 'Authorization': 'Bearer $token',
+          // 'Authorization': 'Bearer your_token_if_needed',
         },
       );
 
@@ -66,55 +61,46 @@ class _PelangganPageState extends State<PelangganPage> {
     return Scaffold(
       backgroundColor: Colors.orange.shade50,
       appBar: AppBar(
-        backgroundColor: Colors.orange.shade50,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          "Data Pelanggan",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.deepOrange,
-            fontSize: 20,
-          ),
-        ),
+        title: const Text('Daftar Pelanggan'),
+        backgroundColor: Colors.orange.shade700,
+        foregroundColor: Colors.white,
       ),
-      body:
-          isLoading
-              ? const Center(
-                child: CircularProgressIndicator(color: Colors.deepOrange),
-              )
-              : pelangganList.isEmpty
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: Colors.deepOrange),
+            )
+          : pelangganList.isEmpty
               ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.people_outline,
-                      size: 64,
-                      color: Colors.orange.shade300,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      "Belum ada data pelanggan",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade600,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.people_outline,
+                        size: 64,
+                        color: Colors.orange.shade300,
                       ),
-                    ),
-                  ],
-                ),
-              )
+                      const SizedBox(height: 16),
+                      Text(
+                        "Belum ada data pelanggan",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
               : RefreshIndicator(
-                onRefresh: fetchPelanggan,
-                color: Colors.deepOrange,
-                child: ListView.builder(
-                  itemCount: pelangganList.length,
-                  itemBuilder: (context, index) {
-                    final pelanggan = pelangganList[index];
-                    return _buildPelangganCard(index, pelanggan);
-                  },
+                  onRefresh: fetchPelanggan,
+                  color: Colors.deepOrange,
+                  child: ListView.builder(
+                    itemCount: pelangganList.length,
+                    itemBuilder: (context, index) {
+                      final pelanggan = pelangganList[index];
+                      return _buildPelangganCard(index, pelanggan);
+                    },
+                  ),
                 ),
-              ),
     );
   }
 
@@ -130,7 +116,7 @@ class _PelangganPageState extends State<PelangganPage> {
         leading: CircleAvatar(
           backgroundColor: Colors.orange.shade100,
           radius: 24,
-          child: Icon(Icons.person, color: Colors.deepOrange, size: 24),
+          child: const Icon(Icons.person, color: Colors.deepOrange, size: 24),
         ),
         title: Text(
           pelanggan['username'] ?? 'Nama tidak tersedia',
@@ -155,7 +141,10 @@ class _PelangganPageState extends State<PelangganPage> {
                 Expanded(
                   child: Text(
                     pelanggan['email'] ?? 'Email tidak tersedia',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),

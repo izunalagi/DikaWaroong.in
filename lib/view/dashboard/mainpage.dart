@@ -151,6 +151,8 @@ class _DashboardPageState extends State<DashboardPage> {
       appBar: AppBar(
         backgroundColor: Colors.orange.shade700,
         title: const Text('Dashboard'),
+        foregroundColor: Colors.white,
+
       ),
       body: Center(
         child: AnimatedOpacity(

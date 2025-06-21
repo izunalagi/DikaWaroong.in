@@ -7,9 +7,10 @@ import 'package:project/view/home/menubycategoryPage.dart';
 import 'package:project/widgets/category_card.dart';
 import 'package:project/widgets/custom_nav_bar.dart';
 import 'package:project/widgets/custom_app_bar.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -30,7 +31,7 @@ class _HomePageState extends State<HomePage> {
   ];
 
   final String baseImageUrl =
-      'https://localhost:7138/gallery/'; // Emulator-safe
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/gallery/'; // Emulator-safe
 
   @override
   void initState() {
@@ -41,7 +42,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchCategories() async {
-    final url = Uri.parse('https://localhost:7138/api/Kategori');
+    final url = Uri.parse(
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Kategori',
+    );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -56,7 +59,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchProducts() async {
-    final url = Uri.parse('https://localhost:7138/api/Produk');
+    final url = Uri.parse(
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Produk',
+    );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -75,7 +80,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchGallery() async {
-    final url = Uri.parse('https://localhost:7138/api/Gallery');
+    final url = Uri.parse(
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Gallery',
+    );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -209,8 +216,19 @@ class _HomePageState extends State<HomePage> {
                           final product = _products[index];
                           String name = product['namaProduk'] ?? '';
                           String imageUrl =
-                              'https://localhost:7138/images/${product['gambar']}';
-                          int price = product['harga'] ?? 0;
+                              'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/images/${product['gambar']}';
+                          final hargaRaw = product['harga'];
+                          final price = switch (hargaRaw) {
+                            int value => value,
+                            double value => value.toInt(),
+                            _ => 0,
+                          };
+                          final formattedPrice = NumberFormat.currency(
+                            locale: 'id_ID',
+                            symbol: 'Rp ',
+                            decimalDigits: 0,
+                          ).format(price);
+
                           String kategori =
                               product['kategori']?['namaKategori'] ?? '';
 
@@ -221,8 +239,7 @@ class _HomePageState extends State<HomePage> {
                                 MaterialPageRoute(
                                   builder:
                                       (context) => ProductDetailsPage(
-                                        idProduk:
-                                            product['idProduk'], // ✅ Tambahkan ini
+                                        idProduk: product['idProduk'],
                                         name: name,
                                         image: imageUrl,
                                         price: price,
@@ -269,7 +286,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   Text(kategori),
                                   Text(
-                                    'Rp $price',
+                                    formattedPrice,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -317,7 +334,7 @@ class _HomePageState extends State<HomePage> {
                                           );
                                         },
                                       );
-                                    }).toList(),
+                                    }),
                                     const SizedBox(width: 18),
                                   ],
                                 ),

@@ -15,7 +15,8 @@ class _PesananPageState extends State<PesananPage> {
   bool isLoading = true;
   String? errorMessage;
 
-  final String apiUrl = 'https://localhost:7138/api/Transaksi';
+  final String apiUrl =
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Transaksi';
 
   @override
   void initState() {
@@ -270,7 +271,7 @@ class _PesananPageState extends State<PesananPage> {
                                         ? null
                                         : () => markAsSelesai(index),
                                 icon: const Icon(Icons.check),
-                                label: const Text('Selesaikan'),
+                                label: const Text('Selesai'),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
                                       transaksi['selesai']

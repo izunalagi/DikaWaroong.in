@@ -26,7 +26,9 @@ class _TambahEditLokasiPageState extends State<TambahEditLokasiPage> {
   }
 
   Future<void> _loadContact() async {
-    final url = Uri.parse('https://localhost:7138/api/Contact');
+    final url = Uri.parse(
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Contact',
+    );
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -63,7 +65,9 @@ class _TambahEditLokasiPageState extends State<TambahEditLokasiPage> {
       });
 
       final headers = {'Content-Type': 'application/json'};
-      final url = Uri.parse('https://localhost:7138/api/Contact');
+      final url = Uri.parse(
+        'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Contact',
+      );
 
       final response = await http.put(url, headers: headers, body: body);
 

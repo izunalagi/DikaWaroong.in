@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:intl/intl.dart';
 
 import 'edit_produk_page.dart';
 import 'tambah_produk_page.dart';
@@ -15,6 +16,12 @@ class ProdukPage extends StatefulWidget {
 class _ProdukPageState extends State<ProdukPage> {
   List<Map<String, dynamic>> produkList = [];
 
+  final NumberFormat _currencyFormatter = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -22,7 +29,8 @@ class _ProdukPageState extends State<ProdukPage> {
   }
 
   Future<void> fetchProduk() async {
-    const apiUrl = 'https://localhost:7138/api/Produk';
+    const apiUrl =
+        'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Produk';
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -41,7 +49,8 @@ class _ProdukPageState extends State<ProdukPage> {
   }
 
   Future<void> deleteProduk(int id) async {
-    final apiUrl = 'https://localhost:7138/api/Produk/$id';
+    final apiUrl =
+        'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Produk/$id';
 
     try {
       final response = await http.delete(Uri.parse(apiUrl));
@@ -150,6 +159,8 @@ class _ProdukPageState extends State<ProdukPage> {
   }
 
   Widget _buildProdukCard(int index, Map<String, dynamic> produk) {
+    final formattedPrice = _currencyFormatter.format(produk['harga']);
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
@@ -162,7 +173,7 @@ class _ProdukPageState extends State<ProdukPage> {
           child:
               produk['gambar'] != null && produk['gambar'].toString().isNotEmpty
                   ? Image.network(
-                    'https://localhost:7138/images/${produk['gambar']}',
+                    'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/images/${produk['gambar']}',
                     width: 48,
                     height: 48,
                     fit: BoxFit.cover,
@@ -200,7 +211,7 @@ class _ProdukPageState extends State<ProdukPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Rp ${produk['harga']} | Stok: ${produk['stock']}",
+              "$formattedPrice | Stok: ${produk['stock']}",
               style: const TextStyle(fontSize: 11, color: Colors.black54),
             ),
             const SizedBox(height: 2),

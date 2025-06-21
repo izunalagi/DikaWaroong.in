@@ -108,13 +108,13 @@ class _RegisterPageState extends State<RegisterPage>
     }
 
     final response = await http.post(
-      Uri.parse("https://localhost:7138/api/Auth/register"),
+      Uri.parse("http://192.168.1.63:5239/api/Auth/register"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "email": email,
         "username": username,
         "password": password,
-        "roleId": 2, // role pelanggan
+        "roleId": 2,
       }),
     );
 
@@ -254,7 +254,10 @@ class _RegisterPageState extends State<RegisterPage>
                     },
                     child: const Text(
                       "Sudah Punya Akun? Login Disini",
-                      style: TextStyle(color: Colors.deepPurple),
+                      style: TextStyle(
+                        color: Colors.deepPurple,
+                        fontWeight: FontWeight.w600,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),

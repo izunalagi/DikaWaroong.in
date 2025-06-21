@@ -15,7 +15,8 @@ class _GalleryPageState extends State<GalleryPage> {
   final List<Map<String, dynamic>> _galleryItems = [];
   final ImagePicker _picker = ImagePicker();
 
-  final String baseUrl = 'https://localhost:7138'; // ganti jika perlu
+  final String baseUrl =
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net';
 
   @override
   void initState() {
@@ -63,44 +64,68 @@ class _GalleryPageState extends State<GalleryPage> {
   }
 
   Future<void> _pickImage(int index) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      final bytes = await picked.readAsBytes();
-      final fileName = picked.name;
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder:
+          (context) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text("Ambil dari Kamera"),
+                  onTap: () => Navigator.pop(context, ImageSource.camera),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text("Pilih dari Galeri"),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+              ],
+            ),
+          ),
+    );
 
-      setState(() {
-        _galleryItems[index]['image'] = bytes;
-      });
+    if (source != null) {
+      final picked = await _picker.pickImage(source: source);
+      if (picked != null) {
+        final bytes = await picked.readAsBytes();
+        final fileName = picked.name;
 
-      final uri = Uri.parse('$baseUrl/api/Gallery');
-      final request = http.MultipartRequest('POST', uri);
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'fotoGallery',
-          bytes,
-          filename: fileName,
-          contentType: MediaType('image', 'jpeg'),
-        ),
-      );
+        setState(() {
+          _galleryItems[index]['image'] = bytes;
+        });
 
-      try {
-        final response = await request.send();
-        if (!mounted) return;
-        if (response.statusCode == 200) {
+        final uri = Uri.parse('$baseUrl/api/Gallery');
+        final request = http.MultipartRequest('POST', uri);
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'fotoGallery',
+            bytes,
+            filename: fileName,
+            contentType: MediaType('image', 'jpeg'),
+          ),
+        );
+
+        try {
+          final response = await request.send();
+          if (!mounted) return;
+          if (response.statusCode == 200) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text("Upload berhasil")));
+            fetchGallery();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Upload gagal: ${response.statusCode}")),
+            );
+          }
+        } catch (e) {
+          if (!mounted) return;
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text("Upload berhasil")));
-          fetchGallery();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Upload gagal: ${response.statusCode}")),
-          );
+          ).showSnackBar(SnackBar(content: Text("Error upload: $e")));
         }
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error upload: $e")));
       }
     }
   }

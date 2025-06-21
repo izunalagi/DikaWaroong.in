@@ -47,7 +47,9 @@ class _CartPageState extends State<CartPage>
     try {
       // Ambil data user dari API /me
       final meResponse = await http.get(
-        Uri.parse('https://localhost:7138/api/Auth/me'),
+        Uri.parse(
+          'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Auth/me',
+        ),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -80,7 +82,9 @@ class _CartPageState extends State<CartPage>
 
       // Kirim request create transaksi
       final response = await http.post(
-        Uri.parse('https://localhost:7138/api/Transaksi'),
+        Uri.parse(
+          'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Transaksi',
+        ),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -119,7 +123,9 @@ class _CartPageState extends State<CartPage>
           '➡️ Kirim detail: idProduk=${item.idProduk}, quantity=${item.quantity}',
         );
         final detailRes = await http.post(
-          Uri.parse('https://localhost:7138/api/DetailTransaksi'),
+          Uri.parse(
+            'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/DetailTransaksi',
+          ),
           headers: {
             'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',

@@ -22,7 +22,8 @@ class _KategoriPageState extends State<KategoriPage> {
   }
 
   Future<void> fetchKategori() async {
-    const apiUrl = 'https://localhost:7138/api/Kategori';
+    const apiUrl =
+        'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Kategori';
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -41,7 +42,8 @@ class _KategoriPageState extends State<KategoriPage> {
   }
 
   Future<void> deleteKategori(int id) async {
-    final apiUrl = 'https://localhost:7138/api/Kategori/$id';
+    final apiUrl =
+        'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Kategori/$id';
 
     try {
       final response = await http.delete(Uri.parse(apiUrl));

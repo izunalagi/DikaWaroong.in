@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class DetailTransaksiPage extends StatefulWidget {
   final int idTransaksi;
@@ -17,7 +18,14 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
   bool isLoading = true;
   String? errorMessage;
 
-  final String baseUrl = 'https://localhost:7138/api';
+  final String baseUrl =
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api';
+
+  final NumberFormat currencyFormat = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'Rp',
+    decimalDigits: 0,
+  );
 
   @override
   void initState() {
@@ -30,15 +38,9 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
         '$baseUrl/DetailTransaksi/by-transaksi/${widget.idTransaksi}';
     final totalUrl = '$baseUrl/DetailTransaksi/total/${widget.idTransaksi}';
 
-    print('[DEBUG] Memuat detail transaksi dari: $detailUrl');
-    print('[DEBUG] Memuat total harga dari: $totalUrl');
-
     try {
       final detailResponse = await http.get(Uri.parse(detailUrl));
       final totalResponse = await http.get(Uri.parse(totalUrl));
-
-      print('[DEBUG] Detail status: ${detailResponse.statusCode}');
-      print('[DEBUG] Total status: ${totalResponse.statusCode}');
 
       if (detailResponse.statusCode == 200 && totalResponse.statusCode == 200) {
         final detailData = jsonDecode(detailResponse.body) as List<dynamic>;
@@ -50,9 +52,6 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
           totalHarga = totalData['total_harga'];
           isLoading = false;
         });
-
-        print('[DEBUG] Berhasil memuat ${detailList.length} item detail.');
-        print('[DEBUG] Total harga: $totalHarga');
       } else {
         setState(() {
           errorMessage = 'Gagal memuat data detail transaksi.';
@@ -60,7 +59,6 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
         });
       }
     } catch (e) {
-      print('[ERROR] $e');
       setState(() {
         errorMessage = 'Terjadi kesalahan: $e';
         isLoading = false;
@@ -117,7 +115,9 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text('Jumlah: ${detail['quantity']}'),
-                                Text('Harga: Rp${detail['harga']}'),
+                                Text(
+                                  'Harga: ${currencyFormat.format(detail['harga'])}',
+                                ),
                               ],
                             ),
                           ),
@@ -144,7 +144,7 @@ class _DetailTransaksiPageState extends State<DetailTransaksiPage> {
                           ),
                         ),
                         Text(
-                          'Rp$totalHarga',
+                          currencyFormat.format(totalHarga),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

@@ -50,7 +50,9 @@ class _ActivityPageState extends State<ActivityPage> {
 
       // Ambil info user
       final meRes = await http.get(
-        Uri.parse('https://localhost:7138/api/Auth/me'),
+        Uri.parse(
+          'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Auth/me',
+        ),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -70,7 +72,9 @@ class _ActivityPageState extends State<ActivityPage> {
 
       // Ambil semua transaksi
       final transaksiRes = await http.get(
-        Uri.parse('https://localhost:7138/api/Transaksi'),
+        Uri.parse(
+          'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Transaksi',
+        ),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -118,7 +122,9 @@ class _ActivityPageState extends State<ActivityPage> {
 
         // Ambil total harga
         final totalRes = await http.get(
-          Uri.parse('https://localhost:7138/api/DetailTransaksi/total/$trxId'),
+          Uri.parse(
+            'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/DetailTransaksi/total/$trxId',
+          ),
           headers: {'Authorization': 'Bearer $token'},
         );
 

@@ -6,6 +6,7 @@ import 'gallery/gallery_page.dart';
 import 'pesanan/pesanan_page.dart';
 import 'package:project/view/autentikasi/login.dart';
 import 'package:project/view/dashboard/contact/TambahEditLokasiPage.dart';
+import 'package:project/view/dashboard/pelanggan/daftarpelanggan.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -130,6 +131,12 @@ class _DashboardPageState extends State<DashboardPage> {
                   MaterialPageRoute(
                     builder: (_) => const TambahEditLokasiPage(),
                   ),
+                );
+              }),
+              _buildDrawerItem(Icons.people, 'Daftar Pelanggan', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PelangganPage()),
                 );
               }),
               ListTile(

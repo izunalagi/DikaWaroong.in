@@ -31,7 +31,8 @@ class _EditProdukPageState extends State<EditProdukPage> {
   String? _namaFileWeb;
   String? _urlGambarLama;
 
-  final _apiBaseUrl = 'https://localhost:7138';
+  final _apiBaseUrl =
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net';
 
   @override
   void initState() {
@@ -189,7 +190,7 @@ class _EditProdukPageState extends State<EditProdukPage> {
                       return Image.file(_gambarFile!, fit: BoxFit.cover);
                     } else if (_urlGambarLama != null) {
                       return Image.network(
-                        'https://localhost:7138/images/${widget.produk['gambar']}',
+                        'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/images/${widget.produk['gambar']}',
                         fit: BoxFit.cover,
                       );
                     } else {

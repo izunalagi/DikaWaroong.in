@@ -28,7 +28,8 @@ class _TambahProdukPageState extends State<TambahProdukPage> {
   Uint8List? _gambarBytesWeb;
   String? _namaFileWeb;
 
-  final _apiBaseUrl = 'https://localhost:7138';
+  final _apiBaseUrl =
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net';
 
   @override
   void initState() {

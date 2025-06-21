@@ -11,7 +11,8 @@ class CreateKategoriPage extends StatefulWidget {
 
 class _CreateKategoriPageState extends State<CreateKategoriPage> {
   final TextEditingController _namaKategoriController = TextEditingController();
-  final _apiBaseUrl = 'https://localhost:7138';
+  final _apiBaseUrl =
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net';
 
   Future<void> _simpanKategori() async {
     if (_namaKategoriController.text.isEmpty) {

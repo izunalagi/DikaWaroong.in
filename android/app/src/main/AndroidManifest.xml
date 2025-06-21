@@ -1,17 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.project"> <!-- Ganti dengan package kamu -->
+    package="com.example.project"> 
 
-    <!-- ✅ Tambah permission untuk lokasi & internet -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+
 
     <application
-        android:label="project"
+        android:label="DikaWaroong.in"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- ✅ Tambahkan API KEY untuk Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCQcZihQjqZ2Ezz5kflQzVa_9nPY-zsBZ8"/>

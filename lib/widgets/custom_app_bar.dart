@@ -2,20 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:project/view/home/cartPage.dart';
 import 'package:project/settings/setting_page.dart';
 import 'dart:async';
+
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CustomAppBar({super.key});
 
   @override
-  Size get preferredSize => const Size.fromHeight(70);
+  Size get preferredSize => const Size.fromHeight(90);
 
   @override
   Widget build(BuildContext context) {
     return Material(
       elevation: 6,
       shadowColor: Colors.orange.shade900.withOpacity(0.4),
-      borderRadius: const BorderRadius.vertical(
-        bottom: Radius.circular(24),
-      ),
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
       child: Container(
         height: preferredSize.height,
         decoration: BoxDecoration(
@@ -47,7 +46,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   await Future.delayed(const Duration(milliseconds: 150));
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SettingsPage()),
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsPage(),
+                    ),
                   );
                 },
                 tooltip: 'Menu',
@@ -112,11 +113,10 @@ class _AnimatedIconButton extends StatefulWidget {
   final String? tooltip;
 
   const _AnimatedIconButton({
-    Key? key,
     required this.icon,
     required this.onTap,
     this.tooltip,
-  }) : super(key: key);
+  });
 
   @override
   State<_AnimatedIconButton> createState() => _AnimatedIconButtonState();
@@ -140,9 +140,10 @@ class _AnimatedIconButtonState extends State<_AnimatedIconButton>
       upperBound: 0.1,
     );
 
-    _scaleAnim = Tween<double>(begin: 1.0, end: 0.9).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _scaleAnim = Tween<double>(
+      begin: 1.0,
+      end: 0.9,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
   Future<void> _handleTap() async {
@@ -174,18 +175,11 @@ class _AnimatedIconButtonState extends State<_AnimatedIconButton>
         child: AnimatedBuilder(
           animation: _scaleAnim,
           builder: (context, child) {
-            return Transform.scale(
-              scale: _scaleAnim.value,
-              child: child,
-            );
+            return Transform.scale(scale: _scaleAnim.value, child: child);
           },
           child: Container(
             padding: const EdgeInsets.all(8),
-            child: Icon(
-              widget.icon,
-              color: Colors.white,
-              size: 28,
-            ),
+            child: Icon(widget.icon, color: Colors.white, size: 28),
           ),
         ),
       ),

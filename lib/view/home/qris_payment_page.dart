@@ -44,7 +44,7 @@ class _QrisPaymentPageState extends State<QrisPaymentPage> {
     });
 
     final uri = Uri.parse(
-      'https://localhost:7138/api/Transaksi/${widget.idTransaksi}',
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Transaksi/${widget.idTransaksi}',
     );
 
     var request = http.MultipartRequest('PUT', uri);

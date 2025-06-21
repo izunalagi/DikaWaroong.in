@@ -14,7 +14,8 @@ class MenuByCategoryPage extends StatefulWidget {
 class _MenuByCategoryPageState extends State<MenuByCategoryPage> {
   List<dynamic> menuList = [];
   bool isLoading = true;
-  final String baseImageUrl = 'https://localhost:7138/images/';
+  final String baseImageUrl =
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/images/';
 
   @override
   void initState() {
@@ -23,7 +24,9 @@ class _MenuByCategoryPageState extends State<MenuByCategoryPage> {
   }
 
   Future<void> fetchProdukByCategory() async {
-    final url = Uri.parse('https://localhost:7138/api/Produk');
+    final url = Uri.parse(
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api/Produk',
+    );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -75,7 +78,7 @@ class _MenuByCategoryPageState extends State<MenuByCategoryPage> {
                   ),
                   itemBuilder: (context, index) {
                     final item = menuList[index];
-                    final harga = item['harga'] ?? 0;
+                    final harga = (item['harga'] as num?)?.toInt() ?? 0;
                     final imageUrl = baseImageUrl + (item['gambar'] ?? '');
                     return _MenuItemCard(
                       name: item['namaProduk'] ?? '',
@@ -113,13 +116,12 @@ class _MenuItemCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _MenuItemCard({
-    Key? key,
     required this.name,
     required this.image,
     required this.price,
     required this.description,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   String formatRupiah(int amount) {
     return 'Rp ${amount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';

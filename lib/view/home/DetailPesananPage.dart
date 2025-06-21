@@ -22,7 +22,8 @@ class _DetailPesananPageState extends State<DetailPesananPage> {
   bool isLoading = true;
   String? errorMessage;
 
-  final String baseUrl = 'https://localhost:7138/api';
+  final String baseUrl =
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net/api';
 
   @override
   void initState() {

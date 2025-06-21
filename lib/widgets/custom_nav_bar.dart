@@ -5,10 +5,10 @@ class CustomNavBar extends StatelessWidget {
   final Function(int) onTap;
 
   const CustomNavBar({
-    Key? key,
+    super.key,
     required this.selectedIndex,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +26,8 @@ class CustomNavBar extends StatelessWidget {
       child: NavigationBarTheme(
         data: NavigationBarThemeData(
           indicatorColor: Colors.orange.withOpacity(0.2),
-          labelTextStyle: MaterialStateProperty.resolveWith((states) {
-            if (states.contains(MaterialState.selected)) {
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
               return const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -39,8 +39,8 @@ class CustomNavBar extends StatelessWidget {
               color: Colors.grey,
             );
           }),
-          iconTheme: MaterialStateProperty.resolveWith((states) {
-            if (states.contains(MaterialState.selected)) {
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
               return const IconThemeData(color: Colors.orange, size: 28);
             }
             return const IconThemeData(color: Colors.grey, size: 26);

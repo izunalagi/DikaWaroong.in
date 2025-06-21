@@ -13,7 +13,8 @@ class EditKategoriPage extends StatefulWidget {
 
 class _EditKategoriPageState extends State<EditKategoriPage> {
   final TextEditingController _namaKategoriController = TextEditingController();
-  final _apiBaseUrl = 'https://localhost:7138';
+  final _apiBaseUrl =
+      'https://dikawaroongin-bsawefdmg5gfdvay.canadacentral-01.azurewebsites.net';
 
   @override
   void initState() {

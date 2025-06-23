@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:project/view/splashscreen/fadepage.dart';
+
 import 'package:project/view/autentikasi/login.dart';
 import 'package:project/view/autentikasi/register.dart';
-// Import custom fade route
-// import 'fade_page_route.dart'; // Uncomment dan sesuaikan path
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -16,7 +14,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     with TickerProviderStateMixin {
   late AnimationController _entranceController;
   late AnimationController _exitController;
-  
+
   late Animation<double> _entranceFadeAnimation;
   late Animation<double> _exitFadeAnimation;
   late Animation<double> _exitScaleAnimation;
@@ -25,19 +23,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   void initState() {
     super.initState();
 
-    // Entrance animation controller untuk fade in ketika page dimuat
     _entranceController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
 
-    // Exit animation controller
     _exitController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000), // Slow exit animation
+      duration: const Duration(milliseconds: 1000),
     );
 
-    // Entrance fade animation
     _entranceFadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -46,7 +41,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       curve: Curves.easeInOut,
     ));
 
-    // Exit animations (smooth fade out dengan slight scale)
     _exitFadeAnimation = Tween<double>(
       begin: 1.0,
       end: 0.0,
@@ -54,7 +48,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       parent: _exitController,
       curve: Curves.easeInOut,
     ));
-    
+
     _exitScaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.98,
@@ -63,38 +57,23 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       curve: Curves.easeInOut,
     ));
 
-    // Start entrance animation ketika page dimuat
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _entranceController.forward();
     });
   }
 
-  void _navigateToLogin() async {
-    _exitController.forward();
-    await Future.delayed(const Duration(milliseconds: 1)); // Timing untuk sinkronisasi
-    
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        FadePageRoute(
-          child: const LoginPage(), // Ganti dengan LoginScreen Anda
-          duration: const Duration(milliseconds: 1000),
-        ),
-      );
-    }
+  // ⛔️ TANPA ANIMASI transisi ke Login
+  void _navigateToLogin() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
   }
 
-  void _navigateToRegister() async {
-    _exitController.forward();
-    await Future.delayed(const Duration(milliseconds: 300)); // Timing untuk sinkronisasi
-    
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        FadePageRoute(
-          child: const RegisterPage(), // Ganti dengan RegisterScreen Anda
-          duration: const Duration(milliseconds: 1000),
-        ),
-      );
-    }
+  // ⛔️ TANPA ANIMASI transisi ke Register
+  void _navigateToRegister() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const RegisterPage()),
+    );
   }
 
   @override
@@ -120,7 +99,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 backgroundColor: Colors.transparent,
                 body: Stack(
                   children: [
-                    // Background Image
                     SizedBox.expand(
                       child: Image.asset(
                         'assets/images/background.png',
@@ -128,18 +106,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         alignment: Alignment.center,
                       ),
                     ),
-
-                    // Dark overlay
                     Container(color: Colors.black.withOpacity(0.3)),
-
-                    // Main content
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: Column(
                         children: [
                           const SizedBox(height: 100),
-
-                          // Welcome Text dengan subtle entrance animation
                           AnimatedBuilder(
                             animation: _entranceController,
                             builder: (context, child) {
@@ -181,10 +153,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               );
                             },
                           ),
-
                           const Spacer(),
-
-                          // Buttons dengan subtle entrance animation
                           AnimatedBuilder(
                             animation: _entranceController,
                             builder: (context, child) {
@@ -201,7 +170,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
-                                      // Login Button
                                       ElevatedButton(
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.orange.shade700,
@@ -221,10 +189,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                           ),
                                         ),
                                       ),
-                                      
                                       const SizedBox(height: 12),
-                                      
-                                      // Register Button
                                       OutlinedButton(
                                         style: OutlinedButton.styleFrom(
                                           foregroundColor: Colors.black,
@@ -245,7 +210,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                           ),
                                         ),
                                       ),
-                                      
                                       const SizedBox(height: 40),
                                     ],
                                   ),
@@ -266,5 +230,3 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 }
-
-// Dummy classes untuk contoh - ganti dengan class sebenarnya

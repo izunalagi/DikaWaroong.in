@@ -87,46 +87,151 @@ class _GalleryPageState extends State<GalleryPage> {
     );
 
     if (source != null) {
-      final picked = await _picker.pickImage(source: source);
-      if (picked != null) {
-        final bytes = await picked.readAsBytes();
-        final fileName = picked.name;
-
-        setState(() {
-          _galleryItems[index]['image'] = bytes;
-        });
-
-        final uri = Uri.parse('$baseUrl/api/Gallery');
-        final request = http.MultipartRequest('POST', uri);
-        request.files.add(
-          http.MultipartFile.fromBytes(
-            'fotoGallery',
-            bytes,
-            filename: fileName,
-            contentType: MediaType('image', 'jpeg'),
-          ),
+      try {
+        // Perbaikan untuk kamera: pastikan kualitas dan imageQuality diatur
+        final picked = await _picker.pickImage(
+          source: source,
+          imageQuality: source == ImageSource.camera ? 85 : null, // Kompres foto kamera
+          maxWidth: source == ImageSource.camera ? 1920 : null, // Batasi ukuran foto kamera
+          maxHeight: source == ImageSource.camera ? 1080 : null,
         );
-
-        try {
-          final response = await request.send();
-          if (!mounted) return;
-          if (response.statusCode == 200) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text("Upload berhasil")));
-            fetchGallery();
-          } else {
+        
+        if (picked != null) {
+          // Show loading indicator
+          if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Upload gagal: ${response.statusCode}")),
+              const SnackBar(
+                content: Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 12),
+                    Text("Mengupload gambar..."),
+                  ],
+                ),
+                duration: Duration(seconds: 10),
+              ),
             );
           }
-        } catch (e) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Error upload: $e")));
+
+          final bytes = await picked.readAsBytes();
+          String fileName = picked.name;
+          
+          // Perbaikan nama file untuk foto kamera
+          if (source == ImageSource.camera && (fileName.isEmpty || fileName == 'image_picker_${DateTime.now().millisecondsSinceEpoch}.jpg')) {
+            fileName = 'camera_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          }
+
+          debugPrint("File name: $fileName, Size: ${bytes.length} bytes");
+
+          // Update UI terlebih dahulu untuk preview
+          setState(() {
+            _galleryItems[index]['image'] = bytes;
+          });
+
+          // Upload ke server
+          await _uploadImage(bytes, fileName, index);
+        }
+      } catch (e) {
+        debugPrint("Error saat pick image: $e");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error mengambil gambar: $e")),
+          );
         }
       }
+    }
+  }
+
+  Future<void> _uploadImage(List<int> bytes, String fileName, int index) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/Gallery');
+      final request = http.MultipartRequest('POST', uri);
+      
+      // Tentukan content type berdasarkan ekstensi file
+      MediaType contentType = MediaType('image', 'jpeg');
+      if (fileName.toLowerCase().endsWith('.png')) {
+        contentType = MediaType('image', 'png');
+      } else if (fileName.toLowerCase().endsWith('.gif')) {
+        contentType = MediaType('image', 'gif');
+      }
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'fotoGallery',
+          bytes,
+          filename: fileName,
+          contentType: contentType,
+        ),
+      );
+
+      // Tambahkan headers jika diperlukan
+      request.headers.addAll({
+        'Accept': 'application/json',
+        'Content-Type': 'multipart/form-data',
+      });
+
+      debugPrint("Uploading to: $uri");
+      debugPrint("File: $fileName (${bytes.length} bytes)");
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      
+      debugPrint("Upload response: ${response.statusCode}");
+      debugPrint("Response body: $responseBody");
+
+      if (!mounted) return;
+
+      // Hide loading snackbar
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Upload berhasil"),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        // Refresh gallery untuk mendapatkan data terbaru
+        await fetchGallery();
+      } else {
+        // Rollback preview jika upload gagal
+        setState(() {
+          if (index < _galleryItems.length && _galleryItems[index]['id'] == null) {
+            _galleryItems[index]['image'] = null;
+          }
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Upload gagal: ${response.statusCode}\n$responseBody"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Upload error: $e");
+      if (!mounted) return;
+      
+      // Hide loading snackbar
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+      
+      // Rollback preview jika upload gagal
+      setState(() {
+        if (index < _galleryItems.length && _galleryItems[index]['id'] == null) {
+          _galleryItems[index]['image'] = null;
+        }
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error upload: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
